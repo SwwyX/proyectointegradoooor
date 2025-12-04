@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB; // Asegúrate de importar DB
+use App\Models\Rol; // Usamos el modelo Eloquent para mejor práctica
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RolSeeder extends Seeder
 {
@@ -15,21 +16,29 @@ class RolSeeder extends Seeder
      */
     public function run()
     {
-
-        // Limpiamos la tabla para evitar duplicados si se corre varias veces
+        // Desactivamos las restricciones de claves foráneas temporalmente para limpiar sin errores
+        Schema::disableForeignKeyConstraints();
+        
+        // Limpiamos la tabla
         DB::table('roles')->truncate();
         
-        // Definimos los roles basados en tus informes
+        // Reactivamos las restricciones
+        Schema::enableForeignKeyConstraints();
+        
+        // Definimos los roles exactos que necesitas
         $roles = [
-            ['nombre_rol' => 'Administrador'],
-            ['nombre_rol' => 'Asesoría Pedagógica'],
-            ['nombre_rol' => 'Director de Carrera'],
-            ['nombre_rol' => 'Docente'],
-            ['nombre_rol' => 'Estudiante'], // Rol por defecto para el registro
+            'Administrador',
+            'Asesoría Pedagógica',
+            'Director de Carrera',
+            'Docente',
+            'Estudiante',
+            'Coordinador Técnico Pedagógico',
+            'Encargada Inclusión',
         ];
 
-        // Insertamos los roles en la tabla
-        DB::table('roles')->insert($roles);
+        // Insertamos uno por uno
+        foreach ($roles as $nombre) {
+            Rol::create(['nombre_rol' => $nombre]);
+        }
     }
 }
-

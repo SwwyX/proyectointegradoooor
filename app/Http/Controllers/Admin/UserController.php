@@ -4,42 +4,61 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Rol; // Necesitamos los Roles para el formulario de edición
+use App\Models\Rol;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     /**
-     * Muestra la lista de usuarios.
+     * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): View
     {
-        // Obtenemos todos los usuarios CON su rol cargado para evitar N+1 queries
-        $users = User::with('rol')->latest()->paginate(10); // Paginar de 10 en 10
+        // 1. Capturar parámetros de ordenamiento de la URL
+        // Si no vienen, usamos 'id' y 'asc' por defecto.
+        $sort = $request->get('sort', 'id');
+        $direction = $request->get('direction', 'asc');
+
+        // 2. Seguridad: Validar que solo se pueda ordenar por columnas permitidas
+        $allowedSorts = ['id', 'name', 'email', 'created_at'];
+        $allowedDirections = ['asc', 'desc'];
+
+        // Si intentan inyectar una columna rara, volvemos al defecto
+        if (!in_array($sort, $allowedSorts)) $sort = 'id';
+        if (!in_array($direction, $allowedDirections)) $direction = 'asc';
+
+        // 3. Consulta a la base de datos
+        $users = User::with('rol') // Traemos el rol para evitar consultas N+1
+                    ->orderBy($sort, $direction) // Aplicamos el ordenamiento
+                    ->paginate(50); // <-- ¡AQUÍ ESTÁ EL CAMBIO! 50 usuarios por página
+
+        // 4. Retornamos la vista con los usuarios
         return view('admin.users.index', compact('users'));
     }
 
     /**
-     * Muestra el formulario para crear un nuevo usuario.
+     * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
-        $roles = Rol::all(); // Necesitamos pasar los roles a la vista
+        $roles = Rol::all();
         return view('admin.users.create', compact('roles'));
     }
 
     /**
-     * Guarda un nuevo usuario en la base de datos.
+     * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'rol_id' => ['required', 'exists:roles,id'], // Valida que el rol_id exista en la tabla roles
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|confirmed|min:8',
+            'rol_id' => 'required|exists:roles,id',
         ]);
 
         User::create([
@@ -53,64 +72,56 @@ class UserController extends Controller
     }
 
     /**
-     * Muestra el formulario para editar un usuario existente.
-     * Pasamos el User gracias al Route Model Binding
+     * Display the specified resource.
      */
-    public function edit(User $user)
+    public function show(User $user)
     {
-        $roles = Rol::all(); // Necesitamos todos los roles para el dropdown
+        return redirect()->route('admin.users.edit', $user);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(User $user): View
+    {
+        $roles = Rol::all();
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
     /**
-     * Actualiza un usuario existente en la base de datos.
-     * Pasamos el User gracias al Route Model Binding
+     * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            // Validamos email único EXCEPTO para el usuario actual
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'rol_id' => ['required', 'exists:roles,id'],
-            // Hacemos la contraseña opcional en la edición
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'rol_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|confirmed|min:8',
         ]);
 
-        // Preparamos los datos a actualizar
-        $data = $request->only('name', 'email', 'rol_id');
-
-        // Si se proporcionó una nueva contraseña, la hasheamos y la añadimos
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->rol_id = $request->rol_id;
+        
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
 
-        $user->update($data);
+        $user->save();
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado con éxito.');
     }
 
     /**
-     * Elimina un usuario de la base de datos.
-     * Pasamos el User gracias al Route Model Binding
+     * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(User $user): RedirectResponse
     {
-        // Opcional: Añadir validación para no poder borrar el propio usuario admin logueado
-        if ($user->id === auth()->id()) {
-             return redirect()->route('admin.users.index')->with('error', 'No puedes eliminar tu propia cuenta.');
+        // Prevenir que el admin se borre a sí mismo
+        if ($user->id === Auth::id()) {
+            return redirect()->route('admin.users.index')->with('error', 'No puedes eliminar tu propia cuenta.');
         }
-        
-        // Opcional: Añadir validación para no borrar al último administrador
-        if ($user->rol?->nombre_rol === 'Administrador') {
-            $adminCount = User::whereHas('rol', function ($query) {
-                $query->where('nombre_rol', 'Administrador');
-            })->count();
-            if ($adminCount <= 1) {
-                return redirect()->route('admin.users.index')->with('error', 'No se puede eliminar al último administrador.');
-            }
-        }
-
 
         $user->delete();
         return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado con éxito.');

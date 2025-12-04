@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-5">
-        <div class="container-lg">
+        <div class="container-fluid px-4">
             
             <h2 class="fw-semibold fs-2 text-body-emphasis mb-4">
                 Casos Pendientes de Validación
@@ -60,16 +60,27 @@
                                         <td>{{ $caso->nombre_estudiante }}</td>
                                         <td>{{ $caso->carrera }}</td>
                                         <td>
-                                            {{-- --- ¡INICIO DE LA MODIFICACIÓN! --- --}}
+                                            {{-- LÓGICA DE BADGES ACTUALIZADA --}}
                                             @php $estadoLimpio = strtolower(trim($caso->estado)); @endphp
                                             <span class="badge rounded-pill fs-6
-                                                @if($estadoLimpio == 'sin revision') bg-info-subtle text-info-emphasis border border-info-subtle
-                                                @elseif($estadoLimpio == 'pendiente') bg-warning-subtle text-warning-emphasis border border-warning-subtle
-                                                @else bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle @endif
-                                            ">
-                                                {{ ucfirst($caso->estado) }}
+                                                @if($estadoLimpio == 'pendiente de validacion' || $estadoLimpio == 'en revision') 
+                                                    bg-warning-subtle text-warning-emphasis border border-warning-subtle
+                                                @elseif($estadoLimpio == 'reevaluacion') 
+                                                    bg-danger-subtle text-danger-emphasis border border-danger-subtle
+                                                @else 
+                                                    bg-info-subtle text-info-emphasis border border-info-subtle 
+                                                @endif">
+                                                
+                                                @if($estadoLimpio == 'pendiente de validacion') 
+                                                    ⏳ Pendiente de Validación
+                                                @elseif($estadoLimpio == 'en revision') 
+                                                    ⏳ En Revisión (Legacy)
+                                                @elseif($estadoLimpio == 'reevaluacion') 
+                                                    ↩️ En Corrección (CTP)
+                                                @else 
+                                                    {{ ucfirst($caso->estado) }} 
+                                                @endif
                                             </span>
-                                            {{-- --- FIN DE LA MODIFICACIÓN! --- --}}
                                         </td>
                                         <td>{{ $caso->created_at->translatedFormat('d M Y, H:i') }}</td>
                                         <td class="text-end pe-4">
@@ -81,7 +92,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="text-center p-4">
-                                            <span class="text-muted">No se encontraron casos pendientes con los filtros seleccionados.</span>
+                                            <span class="text-muted">No hay casos pendientes de validación en este momento.</span>
                                         </td>
                                     </tr>
                                 @endforelse

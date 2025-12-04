@@ -28,8 +28,7 @@
                                 </button>
                                 <a href="{{ route('director.casos.todos') }}" class="btn btn-secondary">Limpiar</a>
 
-                                {{-- --- ¡BOTÓN AÑADIDO! --- --}}
-                                <a href="{{ route('director.casos.todos.export', request()->query()) }}" class="btn btn-info">
+                                <a href="{{ route('director.casos.todos.export', request()->query()) }}" class="btn btn-info text-white">
                                     <i class="bi bi-download me-1"></i> Exportar
                                 </a>
                             </div>
@@ -53,43 +52,63 @@
                             <tbody>
                                 @forelse ($casos as $caso)
                                     <tr>
-                                        <td class="ps-4 fw-medium">{{ $caso->rut_estudiante }}</td>
+                                        <td class="ps-4 fw-medium text-nowrap">{{ $caso->rut_estudiante }}</td>
                                         <td>{{ $caso->nombre_estudiante }}</td>
                                         <td>{{ $caso->carrera }}</td>
-                                        <td>
+                                        <td class="py-3">
                                             @php $estadoLimpio = strtolower(trim($caso->estado)); @endphp
-                                            <span class="badge rounded-pill fs-6
-                                                @if($estadoLimpio == 'sin revision') bg-info-subtle text-info-emphasis border border-info-subtle
-                                                @elseif($estadoLimpio == 'pendiente') bg-warning-subtle text-warning-emphasis border border-warning-subtle
-                                                @elseif($estadoLimpio == 'aceptado') bg-success-subtle text-success-emphasis border border-success-subtle
-                                                @elseif($estadoLimpio == 'rechazado') bg-danger-subtle text-danger-emphasis border border-danger-subtle
-                                                @else bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle @endif
-                                            ">
-                                                {{ ucfirst($caso->estado) }}
+                                            <span class="badge rounded-pill fs-6 fw-normal px-3 py-2
+                                                @if($estadoLimpio == 'en gestion ctp' || $estadoLimpio == 'sin revision') 
+                                                    bg-info-subtle text-info-emphasis border border-info-subtle
+                                                @elseif($estadoLimpio == 'pendiente de validacion' || $estadoLimpio == 'en revision') 
+                                                    bg-warning-subtle text-warning-emphasis border border-warning-subtle
+                                                @elseif($estadoLimpio == 'reevaluacion') 
+                                                    bg-danger-subtle text-danger-emphasis border border-danger-subtle
+                                                @elseif($estadoLimpio == 'finalizado' || $estadoLimpio == 'aceptado') 
+                                                    bg-success-subtle text-success-emphasis border border-success-subtle
+                                                @elseif($estadoLimpio == 'rechazado') 
+                                                    bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle
+                                                @else 
+                                                    bg-light text-dark border 
+                                                @endif">
+                                                
+                                                @if($estadoLimpio == 'en gestion ctp' || $estadoLimpio == 'sin revision') 
+                                                    📝 En Gestión CTP
+                                                @elseif($estadoLimpio == 'pendiente de validacion') 
+                                                    ⏳ Pendiente Validación
+                                                @elseif($estadoLimpio == 'reevaluacion') 
+                                                    ↩️ En Corrección
+                                                @elseif($estadoLimpio == 'finalizado') 
+                                                    ✅ Finalizado
+                                                @else 
+                                                    {{ ucfirst($caso->estado) }} 
+                                                @endif
                                             </span>
                                         </td>
-                                        <td>{{ $caso->created_at->translatedFormat('d M Y, H:i') }}</td>
+                                        <td>{{ $caso->created_at->translatedFormat('d M Y') }}</td>
                                         <td class="text-end pe-4">
-                                            <a href="{{ route('director.casos.show', $caso) }}" class="btn 
-                                                @if(in_array($estadoLimpio, ['sin revision', 'pendiente'])) 
-                                                    btn-primary btn-sm
+                                            <a href="{{ route('director.casos.show', $caso) }}" class="btn btn-sm px-3 rounded-pill
+                                                @if(in_array($estadoLimpio, ['pendiente de validacion', 'en revision'])) 
+                                                    btn-primary shadow-sm fw-bold
                                                 @else 
-                                                    btn-secondary btn-sm 
-                                                @endif
-                                            ">
-                                                <i class="bi bi-eye-fill me-1"></i> 
-                                                @if(in_array($estadoLimpio, ['sin revision', 'pendiente']))
-                                                    Revisar
+                                                    btn-outline-secondary
+                                                @endif">
+                                                
+                                                @if(in_array($estadoLimpio, ['pendiente de validacion', 'en revision']))
+                                                    <i class="bi bi-pencil-square me-1"></i> Validar
                                                 @else
-                                                    Ver Detalle
+                                                    <i class="bi bi-eye-fill me-1"></i> Ver Detalle
                                                 @endif
                                             </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center p-4">
-                                            <span class="text-muted">No se encontraron casos con los filtros seleccionados.</span>
+                                        <td colspan="6" class="text-center p-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                                No se encontraron casos con los filtros seleccionados.
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -99,7 +118,7 @@
                 </div>
 
                 @if ($casos->hasPages())
-                    <div class="card-footer bg-body-tertiary">
+                    <div class="card-footer bg-body-tertiary py-3">
                         {{ $casos->appends(request()->query())->links() }}
                     </div>
                 @endif

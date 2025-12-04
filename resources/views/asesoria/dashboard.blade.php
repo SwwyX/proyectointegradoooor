@@ -1,125 +1,113 @@
 <x-app-layout>
-    {{-- 
-      En lugar del div 'py-12 bg-gray-100', usamos 'py-5' de Bootstrap 
-      El fondo 'bg-body-tertiary' ya está en app.blade.php 
-    --}}
-    <div class="py-5">
-        {{-- ¡CAMBIO AQUÍ! De 'container-lg' a 'container-fluid px-4' para que ocupe todo el ancho --}}
-        <div class="container-fluid px-4">
+    <div class="container px-4">
 
-            {{-- Título --}}
-            <h2 class="fw-semibold fs-2 mb-4">
-                {{ Auth::user()->rol->nombre_rol }}
-            </h2>
 
-            {{-- Banner de Bienvenida: Usamos un div con clases de Bootstrap (color, gradiente, padding) --}}
-            <div class="p-4 p-md-5 mb-5 text-white rounded-3 shadow" style="background-color: #1cbebeff;"> {{-- Color Teal --}}
-                <h3 class="fs-2 fw-bold">¡Bienvenido/a, {{ Auth::user()->name }}!</h3>
-                <p class="mt-2 fs-5" style="opacity: 0.9;">Panel principal para la gestión y seguimiento de casos de ajuste académico.</p>
-            </div>
 
-            {{-- Sección de Acciones Principales (Tarjetas) --}}
-            {{-- Reemplazamos 'grid grid-cols-1...' con 'row g-4' (g-4 es el 'gap') --}}
-            <div class="row g-4 mb-5">
-
-                {{-- Tarjeta: Registrar Nuevo Caso --}}
-                <div class="col-md-6">
-                    {{-- Usamos el componente 'card' de Bootstrap. 'h-100' para igualar alturas. --}}
-                    <div class="card shadow-sm rounded-3 h-100">
-                        {{-- 'd-flex flex-column' nos permite usar 'mt-auto' en el botón --}}
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                {{-- Icono de Bootstrap (reemplaza SVG) --}}
-                                <i class="bi bi-file-earmark-plus-fill fs-2 text-info me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Registrar Nuevo Caso</h4>
-                                    <p class="card-text text-muted mt-1">Iniciar el proceso para un estudiante.</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('casos.create') }}"
-                               class="btn btn-info mt-auto">
-                                Crear Caso
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Tarjeta: Ver Mis Casos --}}
-                <div class="col-md-6">
-                    <div class="card shadow-sm rounded-3 h-100">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                {{-- Icono de Bootstrap --}}
-                                <i class="bi bi-folder-fill fs-2 text-secondary me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Ver Casos Registrados</h4>
-                                    <p class="card-text text-muted mt-1">Consultar listado y estado actual.</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('casos.index') }}"
-                               class="btn btn-secondary mt-auto">
-                                Ver Listado
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            {{-- ====================================================== --}}
-            {{-- ¡SECCIÓN DE ESTADÍSTICAS ACTUALIZADA! --}}
-            {{-- ====================================================== --}}
-            <div class="card shadow-sm rounded-3">
-                <div class="card-header bg-body-tertiary p-3">
-                    <h4 class="fw-semibold fs-5 mb-0">Resumen Rápido (Mis Casos)</h4>
-                </div>
-                <div class="card-body p-4">
-                    {{-- --- ¡INICIO DE LA MODIFICACIÓN! --- --}}
-                    {{-- Cambiamos de 3 a 4 columnas (col-md-6 col-lg-3) --}}
-                    <div class="row g-4 text-center">
-                        
-                        {{-- Tarjeta Estadística 1: Total Creados --}}
-                        <div class="col-md-6 col-lg-3">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-primary">{{ $stats['creados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Total Casos Creados</p>
-                            </div>
-                        </div>
-                        
-                        {{-- Tarjeta Estadística 2: Pendientes --}}
-                        <div class="col-md-6 col-lg-3">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-warning">{{ $stats['pendientes'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Pendientes de Validación</p>
-                            </div>
-                        </div>
-                        
-                        {{-- Tarjeta Estadística 3: Aceptados --}}
-                        <div class="col-md-6 col-lg-3">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-success">{{ $stats['aceptados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Total Casos Aceptados</p>
-                            </div>
-                        </div>
-
-                        {{-- Tarjeta Estadística 4: Rechazados (¡NUEVA!) --}}
-                        <div class="col-md-6 col-lg-3">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-danger">{{ $stats['rechazados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Total Casos Rechazados</p>
-                            </div>
-                        </div>
-
-                    </div>
-                    {{-- --- FIN DE LA MODIFICACIÓN! --- --}}
+        {{-- 2. Alerta de Supervisión (Modernizada) --}}
+        @if(isset($casosAntiguos) && $casosAntiguos->isNotEmpty())
+            <div class="mb-5 alert alert-danger shadow-sm border-0 rounded-4 d-flex align-items-center p-4 bg-danger bg-opacity-10 text-danger" role="alert">
+                <i class="bi bi-exclamation-octagon-fill fs-1 me-4"></i>
+                <div>
+                    <h4 class="alert-heading fw-bold mb-1">Alerta de Retraso</h4>
+                    <p class="mb-2 text-dark">Hay <strong>{{ $casosAntiguos->count() }}</strong> casos nuevos que llevan más de 7 días sin ser gestionados.</p>
+                    <a href="{{ route('casos.index') }}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm">
+                        Ver Casos Atrasados <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
             </div>
-            {{-- ====================================================== --}}
-            {{-- FIN DE ESTADÍSTICAS --}}
-            {{-- ====================================================== --}}
+        @endif
 
+        {{-- 3. Banner de Bienvenida (Estilo Asesoría - Teal) --}}
+        <div class="p-5 mb-5 text-white rounded-4 shadow position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #0b5555ff 0%, #20c997 100%);">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <h3 class="fs-2 fw-bold mb-3">Panel de Supervisión Global</h3>
+                    <p class="fs-5 text-white-50 mb-0" style="max-width: 650px;">
+                        Monitoreo completo del flujo de inclusión (Control Total).
+                    </p>
+                </div>
+            </div>
+            {{-- Decoración de fondo --}}
+            <svg class="position-absolute bottom-0 end-0 text-white opacity-10" style="transform: rotateY(180deg); width: 300px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M42.7,-62.9C54.3,-53.4,61.8,-38.2,66.3,-22.7C70.8,-7.2,72.3,8.6,67.1,22.3C61.9,36,50,47.5,36.4,56.7C22.7,65.9,7.4,72.7,-7.7,72.1C-22.7,71.5,-37.4,63.5,-49.3,53C-61.2,42.5,-70.2,29.5,-74.6,15C-79,0.5,-78.8,-15.5,-72.4,-29.1C-66,-42.7,-53.4,-53.8,-39.7,-62C-26.1,-70.1,-13,-75.4,1.6,-77.6C16.3,-79.8,31.1,-72.4,42.7,-62.9Z" transform="translate(100 100)" />
+            </svg>
         </div>
+
+        {{-- 4. Tarjeta de Acción Principal (Centrada) --}}
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 col-lg-6">
+                <div class="card h-100 rounded-4 hover-lift border-0">
+                    <div class="card-body p-5 d-flex flex-column text-center align-items-center">
+                        <div class="icon-box bg-dark bg-opacity-10 text-dark mb-4" style="width: 70px; height: 70px;">
+                            <i class="bi bi-database-gear fs-2"></i>
+                        </div>
+                        
+                        <h4 class="fw-bold fs-4 text-dark mb-3">Gestión Maestra de Casos</h4>
+                        <p class="text-muted mb-4">
+                            Acceso total para crear, editar, eliminar o auditar cualquier caso del sistema.
+                        </p>
+                        
+                        <a href="{{ route('casos.index') }}" class="btn btn-dark rounded-pill px-5 py-2 fw-medium stretched-link shadow-sm">
+                            Ir al Listado Maestro <i class="bi bi-arrow-right-circle ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 5. Estadísticas del Sistema (Diseño Legible) --}}
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+                    <div class="card-header bg-white p-4 border-bottom-0 text-center">
+                        <h5 class="fw-bold mb-1">Estado del Sistema</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            
+                            {{-- 1. Total Histórico --}}
+                            <div class="col-md-6 col-lg-3 border-end border-light">
+                                <div class="p-5 text-center bg-light h-100 d-flex flex-column justify-content-center">
+                                    <h2 class="display-4 fw-bold text-secondary mb-1">{{ $stats['total'] ?? 0 }}</h2>
+                                    <p class="text-muted fs-6 fw-bold mb-0">Total Histórico</p>
+                                </div>
+                            </div>
+
+                            {{-- 2. En Gestión CTP (ARREGLADO PARA QUE SE VEA BIEN) --}}
+                            <div class="col-md-6 col-lg-3 border-end border-light">
+                                <div class="p-5 text-center bg-info bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-pencil-square text-info mb-3 d-block" style="font-size: 2rem;"></i>
+                                    <h2 class="display-4 fw-bold text-dark mb-1">{{ $stats['esperando_ctp'] ?? 0 }}</h2>
+                                    <p class="text-muted fs-6 fw-bold mb-0">En Gestión CTP</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">(Redacción/Corrección)</small>
+                                </div>
+                            </div>
+
+                            {{-- 3. En Validación Director --}}
+                            <div class="col-md-6 col-lg-3 border-end border-light">
+                                <div class="p-5 text-center bg-warning bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-hourglass-split text-warning mb-3 d-block" style="font-size: 2rem;"></i>
+                                    <h2 class="display-4 fw-bold text-dark mb-1">{{ $stats['esperando_director'] ?? 0 }}</h2>
+                                    <p class="text-muted fs-6 fw-bold mb-0">En Validación</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">(Director)</small>
+                                </div>
+                            </div>
+
+                            {{-- 4. Finalizados --}}
+                            <div class="col-md-6 col-lg-3">
+                                 <div class="p-5 text-center bg-success bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-check-circle-fill text-success mb-3 d-block" style="font-size: 2rem;"></i>
+                                    <h2 class="display-4 fw-bold text-success mb-1">{{ $stats['cerrados'] ?? 0 }}</h2>
+                                    <p class="text-muted fs-6 fw-bold mb-0">Finalizados</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </x-app-layout>

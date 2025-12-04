@@ -4,52 +4,42 @@ namespace App\Http\Controllers\Asesoria;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\View\View; // Importa View
-use App\Models\Caso;      // ¡Importante! Añadir el modelo Caso
-use Illuminate\Support\Facades\Auth; // ¡Importante! Añadir Auth
+use Illuminate\View\View;
+use App\Models\Caso;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
-     */
     public function __invoke(Request $request): View
     {
+        // 1. Total de casos en el sistema
+        $totalSistema = Caso::count();
+
+        // 2. Casos en cancha del CTP
+        // CORRECCIÓN: Agregué 'En Gestion CTP' al array.
+        // Ahora busca: El estado nuevo, el antiguo (por si acaso) y los que están en corrección.
+        $enGestionCTP = Caso::whereIn('estado', ['En Gestion CTP', 'Sin Revision', 'Reevaluacion'])->count();
         
-        $asesorId = Auth::id(); // Obtener el ID del asesor logueado
+        // 3. Casos esperando al Director (Listos para validar)
+        $pendientesDirector = Caso::whereIn('estado', ['Pendiente de Validacion', 'En Revision'])->count();
 
-        // 1. Contar el total de casos creados por este asesor
-        $totalCreadosCount = Caso::where('asesoria_id', $asesorId)->count();
+        // 4. Casos Finalizados (Incluimos Aceptado/Rechazado por compatibilidad histórica)
+        $cerrados = Caso::whereIn('estado', ['Finalizado', 'Aceptado', 'Rechazado'])->count();
 
-        // 2. Contar los casos pendientes (Sin Revision o Pendiente)
-        $pendientesCount = Caso::where('asesoria_id', $asesorId)
-                               ->whereIn('estado', ['Sin Revision', 'Pendiente'])
-                               ->count();
-        
-        // 3. Contar los casos Aceptados
-        $aceptadosCount = Caso::where('asesoria_id', $asesorId)
-                              ->where('estado', 'Aceptado')
-                              ->count();
-
-        // --- ¡INICIO DE LA MODIFICACIÓN! ---
-        // 4. (¡NUEVO!) Contar los casos Rechazados
-        $rechazadosCount = Caso::where('asesoria_id', $asesorId)
-                               ->where('estado', 'Rechazado')
-                               ->count();
-
-        // 5. Agrupar las estadísticas
         $stats = [
-            'creados'    => $totalCreadosCount,
-            'pendientes' => $pendientesCount,
-            'aceptados'  => $aceptadosCount,
-            'rechazados' => $rechazadosCount, // <-- Añadido
+            'total' => $totalSistema,
+            'esperando_ctp' => $enGestionCTP,
+            'esperando_director' => $pendientesDirector,
+            'cerrados' => $cerrados,
         ];
-        // --- FIN DE LA MODIFICACIÓN! ---
 
-        // 6. Pasar las estadísticas a la vista
-        return view('asesoria.dashboard', compact('stats'));
+        // Alerta de casos antiguos (Más de 7 días sin moverse)
+        // También actualicé esto para que busque por el estado nuevo o el antiguo
+        $fechaLimite = Carbon::now()->subDays(7);
+        $casosAntiguos = Caso::whereIn('estado', ['En Gestion CTP', 'Sin Revision'])
+                             ->where('created_at', '<', $fechaLimite)
+                             ->get();
+
+        return view('asesoria.dashboard', compact('stats', 'casosAntiguos'));
     }
 }

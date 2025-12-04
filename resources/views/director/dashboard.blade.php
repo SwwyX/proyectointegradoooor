@@ -1,140 +1,182 @@
 <x-app-layout>
-    <div class="py-5">
-        <div class="container-fluid px-4">
+    {{-- Estilos personalizados --}}
+    <style>
+        /* --- NUEVO FONDO --- */
+        .main-content-wrapper {
+            /* Fondo "Azul Acero Suave". 
+               No es blanco, tiene color, genera contraste y es relajante a la vista. */
+            background-color: #f8f5f5ff; 
+            min-height: 90vh;
+        }
 
-            {{-- Título --}}
-            <h2 class="fw-semibold fs-2 text-body-emphasis mb-4">
-                {{ Auth::user()->rol->nombre_rol }}
-            </h2>
+        /* --- Mejoras en las Tarjetas (Mismo estilo que te gustó) --- */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background-color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        }
+        .hover-lift:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(39, 59, 89, 0.15) !important;
+        }
+        
+        /* --- Otros estilos previos --- */
+        .icon-box {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+        }
+        
+        /* Banner degradado original */
+        .bg-gradient-supportive {
+            background: linear-gradient(to right, #2c7be5, #5e93da);
+        }
+    </style>
 
-            {{-- Banner de Bienvenida --}}
-            <div class="p-4 p-md-5 mb-5 text-white rounded-3 shadow" style="background-color: #007bff;"> {{-- Color Azul Director --}}
-                <h3 class="fs-2 fw-bold">¡Bienvenido/a, {{ Auth::user()->name }}!</h3>
-                <p class="mt-2 fs-5" style="opacity: 0.9;">Panel principal para la validación y seguimiento de casos de ajuste académico.</p>
+    {{-- Aplicamos el nuevo fondo --}}
+    <div class="py-5 main-content-wrapper">
+        <div class="container px-4">
+
+            {{-- Encabezado (Texto Original Restaurado) --}}
+            <div class="mb-5">
+                <h2 class="fw-bold text-dark mb-0">
+                    {{ Auth::user()->rol->nombre_rol }}
+                </h2>
+            </div>
+
+            {{-- Banner de Bienvenida (Textos Originales) --}}
+            <div class="p-5 mb-5 text-white rounded-4 shadow bg-gradient-supportive position-relative overflow-hidden">
+                <div class="row align-items-center position-relative z-1">
+                    <div class="col-lg-8">
+                        <h3 class="fs-2 fw-bold mb-3">¡Bienvenido/a, {{ Auth::user()->name }}!</h3>
+                        <p class="fs-5 text-white-50 mb-0" style="max-width: 650px;">
+                            Panel principal para la validación y gestión de casos académicos.
+                        </p>
+                    </div>
+                </div>
+                {{-- Decoración de fondo (Mantenemos la que te gustó) --}}
+                <svg class="position-absolute bottom-0 end-0 text-white opacity-10" style="transform: rotateY(180deg); width: 300px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="currentColor" d="M42.7,-62.9C54.3,-53.4,61.8,-38.2,66.3,-22.7C70.8,-7.2,72.3,8.6,67.1,22.3C61.9,36,50,47.5,36.4,56.7C22.7,65.9,7.4,72.7,-7.7,72.1C-22.7,71.5,-37.4,63.5,-49.3,53C-61.2,42.5,-70.2,29.5,-74.6,15C-79,0.5,-78.8,-15.5,-72.4,-29.1C-66,-42.7,-53.4,-53.8,-39.7,-62C-26.1,-70.1,-13,-75.4,1.6,-77.6C16.3,-79.8,31.1,-72.4,42.7,-62.9Z" transform="translate(100 100)" />
+                </svg>
             </div>
 
             {{-- Tarjetas de Acción --}}
-            <div class="row g-4">
+            <div class="row g-4 mb-5">
                 
-                {{-- Tarjeta 1: Casos Pendientes --}}
+                {{-- Tarjeta: CREAR CASO --}}
                 <div class="col-md-6 col-lg-3">
-                    <div class="card shadow-sm rounded-3 h-100">
+                    <div class="card h-100 rounded-4 hover-lift border-0">
                         <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-hourglass-split fs-2 text-warning me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Casos Pendientes</h4>
-                                    <p class="card-text text-muted mt-1">Casos nuevos o en revisión.</p>
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-plus-circle-fill fs-4"></i>
                                 </div>
                             </div>
-                            <a href="{{ route('director.casos.pendientes') }}" class="btn btn-warning mt-auto">
+                            <h4 class="fw-bold fs-5 text-dark">Iniciar Solicitud</h4>
+                            <p class="text-muted small mb-4 flex-grow-1">Ingresar un caso nuevo manualmente.</p>
+                            <a href="{{ route('director.casos.create') }}" class="btn btn-primary w-100 rounded-pill fw-medium stretched-link py-2">
+                                Crear Caso
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tarjeta: PENDIENTES --}}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 rounded-4 hover-lift border-0" style="border-bottom: 4px solid #ffc107 !important;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                                    <i class="bi bi-hourglass-split fs-4"></i>
+                                </div>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                    {{ $stats['pendientes'] ?? 0 }}
+                                </span>
+                            </div>
+                            <h4 class="fw-bold fs-5 text-dark">Pendientes</h4>
+                            <p class="text-muted small mb-4 flex-grow-1">Casos esperando validación.</p>
+                            <a href="{{ route('director.casos.pendientes') }}" class="btn btn-outline-warning w-100 rounded-pill fw-medium text-dark stretched-link py-2 border-2">
                                 Revisar Pendientes
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
-                {{-- Tarjeta 2: Casos Aceptados --}}
+                {{-- Tarjeta: FINALIZADOS --}}
                 <div class="col-md-6 col-lg-3">
-                    <div class="card shadow-sm rounded-3 h-100">
+                    <div class="card h-100 rounded-4 hover-lift border-0">
                         <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-check-circle-fill fs-2 text-success me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Casos Aceptados</h4>
-                                    <p class="card-text text-muted mt-1">Historial de casos aceptados.</p>
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-check-circle-fill fs-4"></i>
                                 </div>
+                                <span class="badge bg-success text-white rounded-pill px-3 py-2">
+                                    {{ $stats['finalizados'] ?? 0 }}
+                                </span>
                             </div>
-                            <a href="{{ route('director.casos.aceptados') }}" class="btn btn-success mt-auto"> 
-                                Ver Aceptados
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
+                            <h4 class="fw-bold fs-5 text-dark">Finalizados</h4>
+                            <p class="text-muted small mb-4 flex-grow-1">Casos cerrados y procesados.</p>
+                            <a href="{{ route('director.casos.aceptados') }}" class="btn btn-outline-success w-100 rounded-pill fw-medium stretched-link py-2 border-2">
+                                Ver Finalizados
                             </a>
                         </div>
                     </div>
                 </div>
 
-                {{-- Tarjeta 3: Casos Rechazados --}}
+                {{-- Tarjeta: HISTORIAL TOTAL --}}
                 <div class="col-md-6 col-lg-3">
-                    <div class="card shadow-sm rounded-3 h-100">
+                    <div class="card h-100 rounded-4 hover-lift border-0">
                         <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-x-circle-fill fs-2 text-danger me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Casos Rechazados</h4>
-                                    <p class="card-text text-muted mt-1">Historial de casos rechazados.</p>
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="icon-box bg-secondary bg-opacity-10 text-secondary">
+                                    <i class="bi bi-list-task fs-4"></i>
                                 </div>
                             </div>
-                            <a href="{{ route('director.historial') }}" class="btn btn-danger mt-auto">
-                                Ver Rechazados
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                {{-- Tarjeta 4: Ver Todos los Casos (¡RUTA ACTUALIZADA!) --}}
-                <div class="col-md-6 col-lg-3">
-                    <div class="card shadow-sm rounded-3 h-100">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-list-task fs-2 text-secondary me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Ver Todos los Casos</h4>
-                                    <p class="card-text text-muted mt-1">Ver el listado completo (solo revisión).</p>
-                                </div>
-                            </div>
-                            {{-- --- ¡INICIO DE LA MODIFICACIÓN! --- --}}
-                            <a href="{{ route('director.casos.todos') }}" class="btn btn-secondary mt-auto">
-                            {{-- --- FIN DE LA MODIFICACIÓN! --- --}}
-                                Ver Listado Completo
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
+                            <h4 class="fw-bold fs-5 text-dark">Historial Total</h4>
+                            <p class="text-muted small mb-4 flex-grow-1">Listado completo de casos.</p>
+                            <a href="{{ route('director.casos.todos') }}" class="btn btn-outline-secondary w-100 rounded-pill fw-medium stretched-link py-2 border-2">
+                                Ver Todo
                             </a>
                         </div>
                     </div>
                 </div>
 
-            
-            {{-- ====================================================== --}}
-            {{-- ¡SECCIÓN DE ANALÍTICAS RESTAURADA! --}}
-            {{-- ====================================================== --}}
-            <div class="card shadow-sm rounded-3 mt-5 mb-5">
-                <div class="card-header bg-body-tertiary p-3">
-                    <h4 class="fw-semibold fs-5 mb-0">Estadisticas</h4>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4 text-center">
-                        {{-- Casos Pendientes (usa el controller) --}}
-                        <div class="col-md-4">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-warning">{{ $stats['pendientes'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Casos Pendientes (o Sin Revisión)</p>
-                            </div>
+            </div>
+
+            {{-- SECCIÓN DE ANALÍTICAS (Restaurada a Estadísticas Rápidas) --}}
+            <div class="row justify-content-center" id="analytics-section">
+                <div class="col-lg-10">
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+                        <div class="card-header bg-white p-4 border-bottom-0 text-center">
+                            <h5 class="fw-bold mb-1">Estadísticas Rápidas</h5>
                         </div>
-                        {{-- Casos Aceptados (usa el controller) --}}
-                        <div class="col-md-4">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-success">{{ $stats['aceptados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Casos Aceptados</p>
-                            </div>
-                        </div>
-                        {{-- Casos Rechazados (usa el controller) --}}
-                        <div class="col-md-4">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-danger">{{ $stats['rechazados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Casos Rechazados</p>
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                {{-- Estadística Pendientes --}}
+                                <div class="col-md-6 border-end border-light">
+                                    <div class="p-5 text-center bg-warning bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                        <i class="bi bi-hourglass-top text-warning mb-3" style="font-size: 3rem;"></i>
+                                        <h2 class="display-4 fw-bold text-dark mb-1">{{ $stats['pendientes'] ?? 0 }}</h2>
+                                        <p class="text-muted fs-6 fw-bold mb-0">Pendientes</p>
+                                    </div>
+                                </div>
+                                {{-- Estadística Finalizados --}}
+                                <div class="col-md-6">
+                                     <div class="p-5 text-center bg-success bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                        <i class="bi bi-check-circle text-success mb-3" style="font-size: 3rem;"></i>
+                                        <h2 class="display-4 fw-bold text-dark mb-1">{{ $stats['finalizados'] ?? 0 }}</h2>
+                                        <p class="text-muted fs-6 fw-bold mb-0">Finalizados (Cerrados)</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {{-- ====================================================== --}}
-            {{-- FIN DE SECCIÓN DE ANALÍTICAS --}}
-            {{-- ====================================================== --}}
 
-
-
-            </div>
         </div>
     </div>
 </x-app-layout>

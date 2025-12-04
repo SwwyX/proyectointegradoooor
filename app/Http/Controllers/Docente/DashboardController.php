@@ -4,48 +4,46 @@ namespace App\Http\Controllers\Docente;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\View\View; // Importa View
-use App\Models\Caso;      // ¡Importante! Añadir el modelo Caso
-use Illuminate\Support\Facades\Auth; // ¡Importante! Añadir Auth
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Caso;
+use App\Models\Seccion;
 
 class DashboardController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
-     */
     public function __invoke(Request $request): View
     {
-        // --- ¡INICIO DE LA MODIFICACIÓN! ---
-        
-        $docenteId = Auth::id(); // Obtener el ID del docente logueado
+        $docenteId = Auth::id();
 
-        // 1. Contar casos PENDIENTES DE LECTURA
-        // (Son casos 'Aceptados' donde el docente aún NO ha confirmado)
-        $pendientesCount = Caso::where('estado', 'Aceptado')
-                               ->whereDoesntHave('docentesQueConfirmaron', function ($query) use ($docenteId) {
-                                   $query->where('user_id', $docenteId);
-                               })
-                               ->count();
+        // 1. Obtener las secciones del docente con sus asignaturas y alumnos que tengan casos FINALIZADOS
+        $seccionesConAlumnos = Seccion::where('docente_id', $docenteId)
+            ->with(['asignatura', 'estudiantes' => function($query) {
+                // Filtramos estudiantes que tengan al menos un caso finalizado
+                $query->whereHas('casos', function($q) {
+                    $q->where('estado', 'Finalizado');
+                })->with(['casos' => function($q) {
+                    // Cargamos solo los casos finalizados
+                    $q->where('estado', 'Finalizado')->latest();
+                }]);
+            }])
+            ->get();
 
-        // 2. Contar casos YA CONFIRMADOS
-        // (Son casos 'Aceptados' donde el docente SÍ ha confirmado)
-        $confirmadosCount = Caso::where('estado', 'Aceptado')
-                              ->whereHas('docentesQueConfirmaron', function ($query) use ($docenteId) {
-                                  $query->where('user_id', $docenteId);
-                              })
-                              ->count();
+        // Calcular estadísticas
+        $totalAlumnos = 0;
+        $totalCasos = 0;
 
-        // 3. Agrupar las estadísticas en un array
+        foreach ($seccionesConAlumnos as $seccion) {
+            $totalAlumnos += $seccion->estudiantes->count();
+            foreach ($seccion->estudiantes as $estudiante) {
+                $totalCasos += $estudiante->casos->count();
+            }
+        }
+
         $stats = [
-            'pendientes' => $pendientesCount,
-            'confirmados' => $confirmadosCount,
+            'total_alumnos_ajustes' => $totalAlumnos,
+            'total_casos' => $totalCasos
         ];
 
-        // 4. Pasar las estadísticas a la vista
-        return view('docente.dashboard', compact('stats'));
-        // --- FIN DE LA MODIFICACIÓN! ---
+        return view('docente.dashboard', compact('seccionesConAlumnos', 'stats'));
     }
 }

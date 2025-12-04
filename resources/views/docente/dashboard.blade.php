@@ -1,93 +1,158 @@
 <x-app-layout>
-    <div class="py-5">
-        <div class="container-fluid px-4">
+    <div class="container px-4">
 
-            {{-- Título del Dashboard --}}
-            <h2 class="fw-semibold fs-2 text-body-emphasis mb-4">
-                {{ Auth::user()->rol->nombre_rol }}
-            </h2>
 
-            {{-- Banner de Bienvenida --}}
-            <div class="p-4 p-md-5 mb-5 text-white rounded-3 shadow" style="background-color: #c52b2bff;"> {{-- Color Morado/Índigo para Docente --}}
-                <h3 class="fs-2 fw-bold">¡Bienvenido/a, {{ Auth::user()->name }}!</h3>
-                <p class="mt-2 fs-5" style="opacity: 0.9;">Aquí encontrará los ajustes académicos aprobados para sus estudiantes.</p>
-            </div>
 
-            {{-- Sección de Acciones (Widgets) --}}
-            <div class="row g-4 mb-5">
-
-                {{-- Widget: Ajustes Pendientes de Confirmar Lectura --}}
-                <div class="col-md-6">
-                    <div class="card shadow-sm rounded-3 h-100 border-warning-subtle bg-warning-subtle">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-bell-fill fs-2 text-warning-emphasis me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0 text-warning-emphasis">Ajustes Pendientes de Confirmar</h4>
-                                    <p class="card-text text-warning-emphasis mt-1" style="opacity: 0.8;">Casos que han sido aceptados pero que aún no ha confirmado como leídos.</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('docente.ajustes.pendientes') }}" class="btn btn-warning mt-auto">
-                                Ver Pendientes de Lectura
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Widget: Todos los Ajustes Aprobados --}}
-                <div class="col-md-6">
-                    <div class="card shadow-sm rounded-3 h-100">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-card-checklist fs-2 text-secondary me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Mis Ajustes Confirmados</h4>
-                                    <p class="card-text text-muted mt-1">Historial de todos los ajustes cuya lectura ya ha confirmado.</p>
-                                </div>
-                            </div>
-                            <a href="{{ route('docente.ajustes.todos') }}" class="btn btn-secondary mt-auto">
-                                Ver Historial de Confirmaciones
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
+        {{-- 2. Banner de Bienvenida (Estilo Moderno - Tono Verde/Teal) --}}
+        <div class="p-5 mb-5 text-white rounded-4 shadow position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <h3 class="fs-2 fw-bold mb-3">¡Hola, {{ Auth::user()->name }}!</h3>
+                    <p class="fs-5 text-white-50 mb-0" style="max-width: 650px;">
+                        Gestión de Ajustes Razonables por Sección.
+                    </p>
                 </div>
             </div>
-
-            {{-- ====================================================== --}}
-            {{-- ¡NUEVA SECCIÓN DE ESTADÍSTICAS AÑADIDA! --}}
-            {{-- ====================================================== --}}
-            <div class="card shadow-sm rounded-3">
-                <div class="card-header bg-body-tertiary p-3">
-                    <h4 class="fw-semibold fs-5 mb-0">Resumen Rápido (Mis Casos)</h4>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4 text-center">
-                        
-                        {{-- Tarjeta Estadística 1: Pendientes de Lectura --}}
-                        <div class="col-md-6">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-warning">{{ $stats['pendientes'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Pendientes de Lectura</p>
-                            </div>
-                        </div>
-                        
-                        {{-- Tarjeta Estadística 2: Ajustes Confirmados --}}
-                        <div class="col-md-6">
-                            <div class="bg-body-tertiary p-3 rounded-3">
-                                <span class="fs-1 fw-bold text-success">{{ $stats['confirmados'] ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0 mt-1">Ajustes Confirmados</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            {{-- ====================================================== --}}
-            {{-- FIN DE ESTADÍSTICAS --}}
-            {{-- ====================================================== --}}
-
+            {{-- Decoración de fondo --}}
+            <svg class="position-absolute bottom-0 end-0 text-white opacity-10" style="transform: rotateY(180deg); width: 300px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M42.7,-62.9C54.3,-53.4,61.8,-38.2,66.3,-22.7C70.8,-7.2,72.3,8.6,67.1,22.3C61.9,36,50,47.5,36.4,56.7C22.7,65.9,7.4,72.7,-7.7,72.1C-22.7,71.5,-37.4,63.5,-49.3,53C-61.2,42.5,-70.2,29.5,-74.6,15C-79,0.5,-78.8,-15.5,-72.4,-29.1C-66,-42.7,-53.4,-53.8,-39.7,-62C-26.1,-70.1,-13,-75.4,1.6,-77.6C16.3,-79.8,31.1,-72.4,42.7,-62.9Z" transform="translate(100 100)" />
+            </svg>
         </div>
+
+        {{-- 3. Resumen Rápido (Estilo Estadísticas) --}}
+        <div class="row mb-5">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                    <div class="p-4 d-flex align-items-center bg-success bg-opacity-10">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-check-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0 fw-bold text-dark display-6">{{ $stats['total_alumnos_ajustes'] ?? 0 }}</h2>
+                            <span class="text-muted small fw-bold text-uppercase">Mis Alumnos con Ajustes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. Separador / Título de Sección --}}
+        <div class="mb-4 border-bottom pb-2">
+            <h4 class="fw-bold text-dark">
+                <i class="bi bi-journal-bookmark-fill me-2 text-primary"></i>Mis Secciones y Estudiantes
+            </h4>
+        </div>
+        
+        {{-- LISTADO AGRUPADO POR SECCIONES --}}
+        @forelse($seccionesConAlumnos as $seccion)
+            
+            {{-- Solo mostramos la sección si tiene estudiantes con casos --}}
+            @if($seccion->estudiantes->count() > 0)
+                <div class="mb-5">
+                    
+                    {{-- Título de la Sección (Tarjeta limpia) --}}
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-light">
+                        <div class="card-body py-3 px-4 d-flex align-items-center">
+                            <span class="badge bg-primary rounded-pill me-3 px-3 py-2">Sección {{ $seccion->nombre_seccion }}</span>
+                            <h5 class="mb-0 fw-bold text-dark">{{ $seccion->asignatura->nombre ?? 'Asignatura Sin Nombre' }}</h5>
+                        </div>
+                    </div>
+
+                    {{-- Grid de Estudiantes --}}
+                    <div class="row g-4">
+                        @foreach($seccion->estudiantes as $estudiante)
+                            @foreach($estudiante->casos as $caso) 
+                                
+                                {{-- Lógica original de lectura --}}
+                                @php
+                                    $leido = $caso->docentesQueConfirmaron->contains(Auth::id());
+                                @endphp
+
+                                <div class="col-lg-6">
+                                    {{-- Tarjeta de Estudiante: Aplicamos hover-lift y redondeado. Mantenemos borde rojo si no está leído. --}}
+                                    <div class="card h-100 shadow-sm border-0 rounded-4 hover-lift {{ !$leido ? 'border-start border-4 border-danger' : '' }}" style="overflow: hidden;">
+                                        
+                                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                {{-- Avatar --}}
+                                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                                                    <span class="fw-bold text-primary">{{ substr($estudiante->nombre_completo, 0, 1) }}</span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold text-dark">{{ $estudiante->nombre_completo }}</h6>
+                                                    <small class="text-muted" style="font-size: 0.8rem;">RUT: {{ $estudiante->rut }}</small>
+                                                </div>
+                                            </div>
+                                            
+                                            {{-- BADGE DE ESTADO DE LECTURA --}}
+                                            @if(!$leido)
+                                                <span class="badge bg-danger rounded-pill px-3 py-2 animate__animated animate__pulse animate__infinite">
+                                                    <i class="bi bi-exclamation-circle-fill me-1"></i> Pendiente
+                                                </span>
+                                            @else
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                                    <i class="bi bi-check-all me-1"></i> Leído
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <div class="card-body bg-light bg-opacity-25">
+                                            <h6 class="text-secondary text-uppercase fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                                Resumen de Estrategias:
+                                            </h6>
+                                            @if(is_array($caso->ajustes_propuestos))
+                                                <ul class="mb-0 ps-3 small text-muted">
+                                                    @foreach(array_slice($caso->ajustes_propuestos, 0, 2) as $ajuste)
+                                                        <li class="mb-2">{{ \Illuminate\Support\Str::limit($ajuste, 60) }}</li>
+                                                    @endforeach
+                                                    
+                                                    @if(count($caso->ajustes_propuestos) > 2)
+                                                        <li class="fst-italic text-primary mt-2" style="font-size: 0.8rem;">
+                                                            + {{ count($caso->ajustes_propuestos) - 2 }} estrategias más...
+                                                        </li>
+                                                    @endif
+                                                </ul>
+                                            @else
+                                                <p class="text-muted small fst-italic mb-0">Detalles disponibles en la ficha completa.</p>
+                                            @endif
+                                        </div>
+
+                                        <div class="card-footer bg-white border-top-0 p-3 text-end">
+                                            <a href="{{ route('docente.ajustes.show', $caso->id) }}" class="btn btn-sm {{ !$leido ? 'btn-primary shadow-sm' : 'btn-outline-secondary' }} rounded-pill px-4 fw-medium stretched-link">
+                                                {{ !$leido ? 'Revisar Ajustes' : 'Ver Ficha' }} <i class="bi bi-chevron-right ms-1"></i>
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+        @empty
+            {{-- Empty State con diseño limpio --}}
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-1 text-warning opacity-50"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Sin carga académica</h5>
+                <p class="text-muted mb-0">No se encontraron secciones asociadas a su cuenta de docente.</p>
+            </div>
+        @endforelse
+        
+        {{-- Mensaje Sin Novedades --}}
+        @if($stats['total_alumnos_ajustes'] == 0 && $seccionesConAlumnos->isNotEmpty())
+            <div class="py-5 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-clipboard-check display-1 text-secondary opacity-25"></i>
+                </div>
+                <h4 class="fw-bold text-secondary">Sin novedades</h4>
+                <p class="text-muted">Actualmente no tiene estudiantes con ajustes razonables activos en sus secciones.</p>
+            </div>
+        @endif
+
     </div>
 </x-app-layout>

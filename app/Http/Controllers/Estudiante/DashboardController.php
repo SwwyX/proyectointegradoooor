@@ -4,22 +4,43 @@ namespace App\Http\Controllers\Estudiante;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\View\View; // Importa View
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Estudiante;
 
 class DashboardController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
-     */
     public function __invoke(Request $request): View
     {
-        // Aquí puedes agregar lógica para obtener los casos del estudiante actual
-        // $misCasos = Caso::where('estudiante_id', auth()->user()->estudiante_id)->get(); // Necesitarás vincular User con Estudiante
+        $user = Auth::user();
+        
+        // Buscamos el perfil de estudiante asociado a este usuario
+        $estudiante = Estudiante::where('user_id', $user->id)->first();
 
-        // Retorna la vista del dashboard del Estudiante
-        return view('estudiante.dashboard'); // Asegúrate que esta vista exista
+        $totalCasos = 0;
+        $casosActivos = 0;
+        $casosFinalizados = 0;
+
+        if ($estudiante) {
+            // Si tiene perfil de estudiante, contamos sus casos
+            $totalCasos = $estudiante->casos()->count();
+            
+            $casosActivos = $estudiante->casos()
+                                       ->whereIn('estado', ['En Gestion CTP', 'Pendiente de Validacion', 'Reevaluacion'])
+                                       ->count();
+                                       
+            $casosFinalizados = $estudiante->casos()
+                                          ->where('estado', 'Finalizado')
+                                          ->count();
+        }
+
+        $stats = [
+            'total' => $totalCasos,
+            'activos' => $casosActivos,
+            'finalizados' => $casosFinalizados,
+            'tiene_perfil' => (bool) $estudiante // Para saber si mostramos alerta de error
+        ];
+
+        return view('estudiante.dashboard', compact('stats'));
     }
 }
