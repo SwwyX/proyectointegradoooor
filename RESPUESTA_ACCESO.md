@@ -78,6 +78,8 @@
 📂 Directorios:           33 directorios
 ```
 
+_Nota: Estadísticas calculadas automáticamente mediante comandos `find`, `wc` y `ls` ejecutados el 2025-12-12_
+
 ---
 
 ## 🎯 LO QUE PUEDO HACER:
@@ -164,5 +166,6 @@ He creado documentación completa del proyecto:
 
 ---
 
-_Documentación generada automáticamente - 12 de diciembre de 2025_
-_GitHub Copilot - Agente de Desarrollo_
+_Documentación generada automáticamente - 2025-12-12_  
+_GitHub Copilot - Agente de Desarrollo_  
+_Estadísticas actualizadas al momento de la generación_

@@ -81,6 +81,8 @@
 **Total de imágenes: 7 archivos**  
 **Espacio total de imágenes: ~4.2 MB**
 
+_Nota: Los tamaños son aproximados según el output de `ls -lh` al momento de la generación (2025-12-12)_
+
 ### ✅ Imágenes Verificadas Visualmente:
 - ✅ INACAP_LOGO.png - Logo institucional rojo y negro
 - ✅ imagen1carrusel.jpg - Grupo de 6 estudiantes frente al campus
@@ -244,4 +246,5 @@ El sistema cuenta con los siguientes modelos Eloquent que gestionan los datos:
 
 ---
 
-_Generado automáticamente el: 2025-12-12_
+_Generado automáticamente el: 2025-12-12_  
+_Estadísticas verificadas al momento de la generación mediante análisis del repositorio_
