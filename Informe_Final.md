@@ -1,16 +1,14 @@
-# INFORME FINAL - PROYECTO INTEGRADO
+# SISTEMA DE GESTIÓN ACADÉMICA INCLUSIVA
 
-## Sistema de Gestión Académica Inclusiva
-
-**Empresa:** INACAP
+**Empresa:** INACAP (Simulación Académica)
 
 ---
 
-**NOMBRE:** Juan Aravena & Benjamín Kreps  
-**CARRERA:** Ingeniería en Informática  
+**NOMBRE:** Juan Aravena, Benjamín Kreps  
+**CARRERA:** Ingeniería en Informática / Ciberseguridad  
 **ASIGNATURA:** Proyecto Integrado  
 **PROFESOR:** Roberto Alveal  
-**FECHA:** Diciembre 2024
+**FECHA:** Diciembre 2025
 
 ---
 
@@ -37,21 +35,24 @@ Responsable de la definición del stack tecnológico (Laravel/MySQL), diseño de
 **[Benjamín Kreps]** – Scrum Master & QA Analyst  
 Encargado de la gestión del cronograma, documentación técnica, diseño de casos de prueba, ejecución del plan de pruebas (QA) y validación de la usabilidad de las interfaces (UX).
 
-### 1.2 Definición del Problema y Justificación
+### 1.2 Problemática Detectada
 
-Actualmente, la gestión de adecuaciones curriculares en la institución carece de un flujo digital centralizado. El proceso depende de correos electrónicos y planillas manuales, lo que genera:
+La gestión actual de ajustes razonables para estudiantes con discapacidad se realiza mediante procesos manuales, correos dispersos y planillas Excel no estandarizadas. Esto provoca:
 
-- **Pérdida de información** crítica sobre estudiantes con necesidades especiales
-- **Falta de trazabilidad** en las aprobaciones y validaciones
-- **Tiempos de respuesta lentos** que afectan directamente la experiencia académica de los estudiantes con discapacidad
-- **Inconsistencia** en la aplicación de ajustes razonables entre diferentes docentes
+- **Pérdida crítica de trazabilidad:** No se sabe quién aprobó qué, cuándo ni con qué justificación
+- **Ambigüedad en la redacción de ajustes:** Cada profesional describe los apoyos de forma diferente, generando confusión en la implementación
+- **Alto riesgo de incumplimiento normativo:** Al no tener validaciones formales, se pueden aplicar ajustes sin el respaldo técnico y directivo requerido
+- **Dispersión de información:** Documentos físicos y digitales almacenados en múltiples ubicaciones sin un repositorio centralizado
+- **Tiempos de respuesta lentos:** El proceso manual puede tardar semanas en completarse, afectando directamente la experiencia académica de los estudiantes
 
-**Justificación de la Solución:** El "Sistema de Gestión Académica Inclusiva" nace como una respuesta tecnológica para digitalizar y estandarizar este flujo. La solución permite:
+### 1.3 Necesidad y Justificación
 
-1. **Centralización:** Un repositorio único y seguro para expedientes sensibles
-2. **Trazabilidad:** Registro inmutable de quién solicitó, revisó y aprobó cada ajuste
-3. **Cumplimiento Normativo:** Asegura que cada adecuación cuente con el respaldo técnico y directivo antes de ser aplicada
-4. **Eficiencia Operativa:** Reducción del 50% en los tiempos de validación y aumento del 100% en precisión
+Se requiere migrar desde una gestión fragmentada a una **plataforma digital centralizada**. La solución se justifica en la necesidad de:
+
+1. **Segregar funciones:** Quien ingresa datos no debe ser quien aprueba recursos, cumpliendo con principios de control interno
+2. **Digitalizar instrumentos institucionales:** Transformar la "Ficha de Entrevista" y el "Catálogo de Ajustes" en formularios web estructurados
+3. **Asegurar la integridad de la información:** Implementar validaciones técnicas que impidan registros incompletos o inconsistentes
+4. **Garantizar cumplimiento normativo:** Cada adecuación debe contar con respaldo técnico y aprobación directiva documentada
 
 ### 1.3 Gestión del Proyecto (Gantt)
 
@@ -71,9 +72,45 @@ El proyecto se ejecutó en un plazo de 12 semanas, siguiendo una metodología á
 
 ### 2.1 Descripción General del Sistema
 
-El **Sistema de Gestión Académica Inclusiva** es una aplicación web desarrollada en Laravel 9.x que digitaliza el proceso completo de gestión de adecuaciones curriculares para estudiantes con necesidades especiales.
+El proyecto consiste en una **aplicación web responsiva basada en roles** que profesionaliza el ciclo completo de inclusión académica. A diferencia de las soluciones genéricas de gestión documental, este sistema está específicamente diseñado para materializar el proceso institucional de adecuaciones curriculares, integrando los instrumentos oficiales y las validaciones normativas requeridas.
 
-### 2.2 Módulos Funcionales
+### 2.2 Características Diferenciadoras
+
+#### A. Flujo de Validación Iterativo (Feedback Loop)
+
+A diferencia del proceso manual lineal (donde un rechazo implica reiniciar desde cero), el sistema implementa un **ciclo de retroalimentación estructurado** donde la Dirección de Carrera puede rechazar una propuesta de ajustes. 
+
+**Innovación Técnica:** El sistema obliga técnicamente a ingresar una retroalimentación mediante validación en el backend (`required|string|min:20`), devolviendo el caso al estado `CON_OBSERVACIONES` y notificando automáticamente a la Coordinadora CTP. Esto garantiza:
+
+- ✅ Calidad pedagógica en la definición de ajustes
+- ✅ Trazabilidad completa de correcciones solicitadas
+- ✅ Documentación del criterio directivo aplicado
+- ✅ Eliminación de rechazos ambiguos o sin justificación
+
+#### B. Estandarización del Lenguaje Técnico
+
+Se elimina el texto libre para la definición de apoyos pedagógicos. La solución utiliza un **Catálogo Digital de Ajustes** que estandariza el lenguaje técnico basándose en la taxonomía oficial institucional.
+
+**Ejemplos de estandarización:**
+- ❌ Texto libre: "Dale más tiempo para las pruebas"
+- ✅ Catálogo: "Tiempo Extra 50% en evaluaciones"
+
+- ❌ Texto libre: "Usa el computador para ver mejor"
+- ✅ Catálogo: "Software de Magnificación de Pantalla"
+
+**Beneficio:** Elimina ambigüedades, asegura consistencia entre docentes y facilita la implementación de ajustes sin interpretaciones erróneas.
+
+#### C. Seguridad y Segregación de Funciones
+
+Control de acceso estricto donde cada actor (Encargada de Inclusión, Coordinadora CTP, Director de Carrera) tiene una **interfaz exclusiva** para su función específica. Implementación mediante:
+
+- Middleware de roles a nivel de rutas (`role:Director de Carrera`)
+- Validación adicional en controladores
+- Políticas de autorización (Laravel Policies)
+
+**Principio de Mínimo Privilegio:** Un docente no puede aprobar ajustes, una coordinadora no puede validar casos, garantizando la independencia de las etapas del proceso.
+
+### 2.3 Módulos Funcionales
 
 #### A. Módulo de Admisión (Rol: Encargada de Inclusión)
 
@@ -128,7 +165,7 @@ Portal donde los estudiantes pueden:
 - Visualizar los ajustes aprobados
 - Acceder al historial de su caso
 
-### 2.3 Flujo de Trabajo del Sistema
+### 2.4 Flujo de Trabajo del Sistema
 
 ```
 1. Encargada Inclusión → Ingresa Primera Entrevista [ESTADO: INGRESADO]
@@ -1146,7 +1183,7 @@ Con este desarrollo, **INACAP cuenta ahora con una herramienta tecnológica de c
 
 **Proyecto desarrollado con compromiso y dedicación por:**  
 Juan Aravena & Benjamín Kreps  
-Diciembre 2024
+Diciembre 2025
 
 ---
 
