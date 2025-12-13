@@ -54,7 +54,7 @@ Se requiere migrar desde una gestión fragmentada a una **plataforma digital cen
 3. **Asegurar la integridad de la información:** Implementar validaciones técnicas que impidan registros incompletos o inconsistentes
 4. **Garantizar cumplimiento normativo:** Cada adecuación debe contar con respaldo técnico y aprobación directiva documentada
 
-### 1.3 Gestión del Proyecto (Gantt)
+### 1.4 Gestión del Proyecto (Gantt)
 
 El proyecto se ejecutó en un plazo de 12 semanas, siguiendo una metodología ágil incremental.
 
