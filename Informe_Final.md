@@ -228,7 +228,29 @@ Portal donde los estudiantes pueden:
 
 ## 4. Diagrama de Despliegue
 
-### 4.1 Arquitectura de Infraestructura Cloud
+La solución opera bajo una **arquitectura de tres capas lógicas** para asegurar la seguridad perimetral y la escalabilidad horizontal:
+
+### 4.1 Arquitectura de Tres Capas
+
+**1. Capa de Cliente (Presentación):**  
+Navegadores Web accediendo exclusivamente vía protocolo seguro **HTTPS (Puerto 443)**. Los usuarios finales (Encargada, Coordinadora, Directores, Docentes) acceden a la aplicación desde cualquier dispositivo con conexión a internet, sin necesidad de instalar software adicional.
+
+**2. Capa de Aplicación (Lógica):**  
+Servidor Web (Apache/Nginx) que ejecuta el **Framework Laravel**. Aquí residen:
+- **Controladores:** Lógica de negocio y orquestación de procesos
+- **Validaciones:** Reglas de negocio y validación de datos de entrada
+- **Motor de plantillas Blade:** Renderizado dinámico de vistas
+- **Middleware:** Control de acceso basado en roles
+- **APIs:** Endpoints para búsqueda y operaciones asíncronas
+
+**3. Capa de Datos (Persistencia):**  
+Instancia de Base de Datos **MySQL 8.0** aislada, gestionada preferentemente como servicio (ej. **AWS RDS**) para facilitar:
+- Backups automáticos programados
+- Alta disponibilidad (Multi-AZ)
+- Escalabilidad vertical sin tiempo de inactividad
+- Seguridad perimetral (acceso solo desde capa de aplicación)
+
+### 4.2 Diagrama de Arquitectura Cloud (AWS)
 
 El sistema opera bajo una **arquitectura de tres capas web** en Amazon Web Services (AWS):
 
@@ -267,7 +289,7 @@ El sistema opera bajo una **arquitectura de tres capas web** en Amazon Web Servi
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Procedimiento de Configuración del Entorno (Deployment)
+### 4.3 Procedimiento de Configuración del Entorno (Deployment)
 
 #### Paso 1: Aprovisionamiento del Servidor (EC2)
 
@@ -346,11 +368,59 @@ php artisan storage:link
 
 ## 5. Diagrama de Base de Datos
 
-### 5.1 Estructura de la Base de Datos
+El modelo de datos se encuentra **rigurosamente normalizado en Tercera Forma Normal (3FN)** para evitar redundancia y asegurar la consistencia transaccional.
 
-La persistencia de datos se gestiona en **MySQL 8.0**, estructurada en torno a entidades relacionales normalizadas que soportan el flujo académico e inclusivo.
+### 5.1 Decisiones de Diseño Críticas
 
-### 5.2 Entidades Principales
+#### A. Tabla Intermedia (caso_ajuste)
+
+Se implementó una relación **"Muchos a Muchos"** entre la entidad `casos` y el `Catálogo de Ajustes`.
+
+**Impacto Técnico:**  
+- ✅ Evita guardar datos como texto plano o JSON sin estructura
+- ✅ Permite generar estadísticas futuras (Analytics): ¿Cuál es el ajuste más solicitado? ¿Qué carreras requieren más tiempo extra?
+- ✅ Mantiene la integridad referencial: Si se actualiza la descripción de un ajuste en el catálogo, se actualiza automáticamente para todos los casos
+- ✅ Facilita consultas complejas: "Mostrar todos los estudiantes con ajuste 'Tiempo Extra 50%'"
+
+**Estructura de la tabla:**
+```sql
+CREATE TABLE caso_ajuste (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    caso_id BIGINT NOT NULL,
+    ajuste_id BIGINT NOT NULL,
+    created_at TIMESTAMP,
+    FOREIGN KEY (caso_id) REFERENCES casos(id) ON DELETE CASCADE,
+    FOREIGN KEY (ajuste_id) REFERENCES catalogo_ajustes(id),
+    UNIQUE(caso_id, ajuste_id)
+);
+```
+
+#### B. Tabla feedbacks
+
+Entidad transaccional diseñada para almacenar el **historial completo de rechazos y comentarios**, asegurando la auditoría completa del proceso de decisión y cumpliendo con el requerimiento de trazabilidad.
+
+**Propósito:**
+- 📝 Registro de cada retroalimentación del Director de Carrera
+- 🕐 Timestamp de cuándo se realizó cada observación
+- 👤 Quién realizó la retroalimentación
+- 📊 Estado del caso al momento del feedback
+
+**Beneficio:** Cumple con el requerimiento normativo de documentar las razones de rechazo y permite reconstruir el historial completo de un caso para auditorías.
+
+#### C. Tabla entrevistas
+
+Digitalización estructurada de los campos del formulario "Primera Entrevista", separando los **datos clínicos** de los **datos administrativos**.
+
+**Campos principales:**
+- Tipo de discapacidad (Física, Sensorial, Psíquica, Múltiple)
+- Origen de la solicitud (FUP, Derivación, Espontánea)
+- Fecha de entrevista
+- Observaciones del profesional
+- Documentos de respaldo asociados
+
+**Beneficio:** Mantiene la integridad de la información sensible y cumple con la Ley de Protección de Datos Personales al separar información médica de académica.
+
+### 5.2 Entidades Principales del Sistema
 
 #### Tabla `users`
 **Propósito:** Gestión de usuarios del sistema con autenticación
@@ -472,7 +542,59 @@ La persistencia de datos se gestiona en **MySQL 8.0**, estructurada en torno a e
 | codigo_seccion | VARCHAR(10) | Código de sección |
 | estudiantes | JSON | Array de IDs de estudiantes |
 
-### 5.3 Diagrama Entidad-Relación (Simplificado)
+#### Tabla `catalogo_ajustes`
+**Propósito:** Catálogo estandarizado de ajustes razonables institucionales
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | BIGINT (PK) | Identificador único |
+| nombre_ajuste | VARCHAR(255) | Nombre estandarizado (ej. "Tiempo Extra 50%") |
+| categoria | VARCHAR(100) | Temporal/Espacial/Tecnológico/Metodológico |
+| descripcion | TEXT | Descripción técnica del ajuste |
+| activo | BOOLEAN | Si el ajuste está disponible para selección |
+| created_at | TIMESTAMP | Fecha de creación |
+
+#### Tabla `caso_ajuste` (Tabla Intermedia)
+**Propósito:** Relación Muchos a Muchos entre casos y ajustes
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | BIGINT (PK) | Identificador único |
+| caso_id | BIGINT (FK) | Relación con casos |
+| ajuste_id | BIGINT (FK) | Relación con catalogo_ajustes |
+| created_at | TIMESTAMP | Fecha de asignación |
+| UNIQUE(caso_id, ajuste_id) | | Evita ajustes duplicados en un caso |
+
+#### Tabla `feedbacks`
+**Propósito:** Historial de retroalimentaciones y rechazos
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | BIGINT (PK) | Identificador único |
+| caso_id | BIGINT (FK) | Relación con casos |
+| usuario_id | BIGINT (FK) | Usuario que dio feedback (Director) |
+| tipo_feedback | VARCHAR(50) | RECHAZO/OBSERVACION/APROBACION |
+| comentario | TEXT | Retroalimentación detallada |
+| estado_caso_previo | VARCHAR(50) | Estado del caso antes del feedback |
+| created_at | TIMESTAMP | Fecha y hora del feedback |
+
+#### Tabla `entrevistas`
+**Propósito:** Digitalización del formulario "Primera Entrevista"
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | BIGINT (PK) | Identificador único |
+| caso_id | BIGINT (FK) | Relación con casos |
+| tipo_solicitud | VARCHAR(50) | FUP/Derivación/Espontánea |
+| fecha_entrevista | DATE | Fecha de realización de la entrevista |
+| tipo_discapacidad | VARCHAR(100) | Clasificación clínica |
+| diagnostico_medico | TEXT | Diagnóstico médico del estudiante |
+| observaciones | TEXT | Observaciones del profesional |
+| documentos_respaldo | JSON | IDs de documentos adjuntos |
+| entrevistador_id | BIGINT (FK) | Profesional que realizó la entrevista |
+| created_at | TIMESTAMP | Fecha de registro |
+
+### 5.3 Diagrama Entidad-Relación (Extendido)
 
 ```
 ┌──────────┐       ┌──────────┐       ┌──────────────┐
@@ -485,28 +607,71 @@ La persistencia de datos se gestiona en **MySQL 8.0**, estructurada en torno a e
                          │         ┌────│  casos   │────┐
                          │         │    └──────────┘    │
                          │         │         │          │
-                         │         │ 1:N     │ 1:N      │ 1:N
+                         │         │ 1:N     │ 1:1      │ N:M
                          │         ↓         ↓          ↓
-                         │  ┌────────────┐ ┌──────────────────────┐
-                         │  │ documentos │ │ confirmacion_lecturas│
-                         │  └────────────┘ └──────────────────────┘
-                         │                          │
-                         └──────────────────────────┘ N:1
-                                   (docente)
+                         │  ┌────────────┐ ┌──────────────┐ ┌──────────────────┐
+                         │  │ documentos │ │ entrevistas  │ │  caso_ajuste     │
+                         │  └────────────┘ └──────────────┘ └──────────────────┘
+                         │                                            │
+                         │                                            │ N:1
+                         │                                            ↓
+                         │                                   ┌─────────────────┐
+                         │                                   │ catalogo_ajustes│
+                         │                                   └─────────────────┘
+                         │         ┌──────────┐
+                         │    ┌────│ feedbacks│
+                         │    │    └──────────┘
+                         │    │
+                         │    │ 1:N
+                         │    ↓
+                         │  ┌────────────────────┐
+                         └──│confirmacion_lecturas│
+                            └────────────────────┘
+                                     │
+                                     │ N:1
+                                     ↓
+                            ┌──────────────┐
+                            │ asignaturas  │
+                            └──────────────┘
 ```
+
+**Nota:** Este diagrama muestra las relaciones clave del sistema. En un entorno de producción, se recomienda utilizar herramientas como **MySQL Workbench** o **PHPMyAdmin** para generar el diagrama ER completo con todas las claves foráneas y restricciones de integridad referencial.
 
 ### 5.4 Optimización y Normalización
 
-**Estrategia Híbrida de Almacenamiento:**
+**Estrategia de Normalización Rigurosa (3FN):**
 
-1. **Normalización (3FN)** para entidades críticas: users, roles, estudiantes, asignaturas
-2. **Serialización JSON** para datos variables: ajustes_seleccionados, historial_comentarios
+El sistema implementa **Tercera Forma Normal** en todas las entidades críticas para garantizar:
 
-**Beneficios:**
-- ✅ Reducción de consultas complejas (menos JOINs)
-- ✅ Agilidad en exportación de reportes
-- ✅ Flexibilidad para agregar nuevos tipos de ajustes sin migración
-- ✅ Integridad referencial mantenida en relaciones clave
+1. **Eliminación de redundancia:** Cada dato se almacena una sola vez
+2. **Integridad referencial:** Uso extensivo de claves foráneas con restricciones CASCADE
+3. **Consistencia transaccional:** Actualizaciones atómicas mediante transacciones de base de datos
+4. **Escalabilidad:** Facilita el crecimiento del sistema sin duplicación de datos
+
+**Decisión de Diseño: Tabla Intermedia vs. JSON**
+
+A diferencia de un enfoque simplificado que almacenaría ajustes como JSON en la tabla `casos`, se optó por implementar la **tabla intermedia `caso_ajuste`** que relaciona casos con el catálogo de ajustes.
+
+**Comparativa:**
+
+| Aspecto | JSON en tabla casos | Tabla Intermedia (3FN) |
+|---------|---------------------|------------------------|
+| **Integridad** | ❌ Baja (sin validación FK) | ✅ Alta (claves foráneas) |
+| **Analytics** | ❌ Consultas complejas | ✅ Consultas simples con JOIN |
+| **Actualización** | ❌ Requiere actualizar cada caso | ✅ Se actualiza en catálogo |
+| **Rendimiento** | ✅ Lectura rápida | ⚠️ Requiere JOIN (optimizable con índices) |
+| **Mantenibilidad** | ❌ Difícil rastrear ajustes | ✅ Fácil gestión centralizada |
+
+**Resultado:** Se priorizó la integridad de datos y la capacidad analítica sobre la simplicidad de lectura, considerando que:
+- Los ajustes cambian raramente (actualizaciones poco frecuentes)
+- Las consultas analíticas son críticas para la toma de decisiones institucionales
+- La integridad referencial es un requisito normativo
+
+**Beneficios obtenidos:**
+- ✅ Posibilidad de generar reportes: "Top 10 ajustes más solicitados"
+- ✅ Actualización centralizada del catálogo de ajustes
+- ✅ Auditoría completa: saber cuándo se asignó cada ajuste a cada caso
+- ✅ Integridad garantizada: no se pueden asignar ajustes que no existen en el catálogo
 
 ---
 
