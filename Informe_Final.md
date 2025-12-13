@@ -10,7 +10,7 @@
 **CARRERA:** Ingeniería en Informática  
 **ASIGNATURA:** Proyecto Integrado  
 **PROFESOR:** Roberto Alveal  
-**FECHA:** Diciembre 2025
+**FECHA:** Diciembre 2024
 
 ---
 
@@ -149,7 +149,7 @@ Portal donde los estudiantes pueden:
 
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
-| **PHP** | 8.0.2+ | Lenguaje de programación principal |
+| **PHP** | 8.2+ | Lenguaje de programación principal |
 | **Laravel Framework** | 9.19 | Framework MVC para desarrollo web |
 | **MySQL** | 8.0 | Sistema de gestión de base de datos |
 | **Composer** | 2.x | Gestor de dependencias PHP |
@@ -262,11 +262,11 @@ Configuración del archivo `.env` de producción:
 
 ```env
 DB_CONNECTION=mysql
-DB_HOST=sistema-gestion.xxxx.us-east-1.rds.amazonaws.com
+DB_HOST=[RDS_ENDPOINT].us-east-1.rds.amazonaws.com
 DB_PORT=3306
 DB_DATABASE=sistema_de_gestion
 DB_USERNAME=admingestion
-DB_PASSWORD=[REDACTED]
+DB_PASSWORD=[SECURE_PASSWORD]
 ```
 
 #### Paso 4: Despliegue del Código Fuente
@@ -1146,7 +1146,7 @@ Con este desarrollo, **INACAP cuenta ahora con una herramienta tecnológica de c
 
 **Proyecto desarrollado con compromiso y dedicación por:**  
 Juan Aravena & Benjamín Kreps  
-Diciembre 2025
+Diciembre 2024
 
 ---
 
