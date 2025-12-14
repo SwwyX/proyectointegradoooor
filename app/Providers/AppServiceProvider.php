@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+// 👇 ESTAS SON LAS LÍNEAS QUE FALTABAN 👇
+use Illuminate\Pagination\Paginator;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Configurar Paginación con Bootstrap 5
+        Paginator::useBootstrapFive();
+        
+        // FORZAR ESPAÑOL EN FECHAS (Carbon)
+        Carbon::setLocale('es');
+        setlocale(LC_TIME, 'es_ES.utf8', 'es_ES', 'esp');
     }
 }

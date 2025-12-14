@@ -1,90 +1,73 @@
 <x-app-layout>
-    {{-- 
-      Ya no usamos el <x-slot name="header">, porque lo quitamos de app.blade.php
-      En lugar del div 'py-12 bg-gray-100', usamos 'py-5' de Bootstrap 
-      El fondo 'bg-body-tertiary' ya está en app.blade.php 
-    --}}
-    <div class="py-5">
-        {{-- Reemplazamos 'max-w-7xl mx-auto...' con 'container-lg' --}}
-        <div class="container-lg">
+    <div class="container px-4">
 
-            {{-- Banner de Bienvenida Mejorado --}}
-            {{-- Usamos 'bg-dark' y 'bg-gradient' para el admin, 'text-white' --}}
-            <div class="p-4 p-md-5 mb-5 text-white rounded-3 shadow bg-dark bg-gradient">
-                <h3 class="fs-2 fw-bold">¡Bienvenido/a, Administrador {{ Auth::user()->name }}!</h3>
-                <p class="mt-2 fs-5" style="opacity: 0.9;">Panel de control general del Sistema de Gestión Académica Inclusiva.</p>
-                {{-- <a href="#" class="btn btn-light fw-semibold mt-3">Ver Reporte General</a> --}}
+
+        {{-- 2. Banner de Bienvenida (Estilo Admin - Dark/Slate) --}}
+        <div class="p-5 mb-5 text-white rounded-4 shadow position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #ca3272ff 0%, #343a40 100%);">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <h3 class="fs-2 fw-bold mb-3">¡Hola, Administrador {{ Auth::user()->name }}!</h3>
+                    <p class="fs-5 text-white-50 mb-0" style="max-width: 650px;">
+                        Control general del Sistema de Gestión Académica Inclusiva.
+                    </p>
+                </div>
             </div>
+            {{-- Decoración de fondo --}}
+            <svg class="position-absolute bottom-0 end-0 text-white opacity-10" style="transform: rotateY(180deg); width: 300px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M42.7,-62.9C54.3,-53.4,61.8,-38.2,66.3,-22.7C70.8,-7.2,72.3,8.6,67.1,22.3C61.9,36,50,47.5,36.4,56.7C22.7,65.9,7.4,72.7,-7.7,72.1C-22.7,71.5,-37.4,63.5,-49.3,53C-61.2,42.5,-70.2,29.5,-74.6,15C-79,0.5,-78.8,-15.5,-72.4,-29.1C-66,-42.7,-53.4,-53.8,-39.7,-62C-26.1,-70.1,-13,-75.4,1.6,-77.6C16.3,-79.8,31.1,-72.4,42.7,-62.9Z" transform="translate(100 100)" />
+            </svg>
+        </div>
 
-            {{-- ====================================================== --}}
-            {{-- ¡SECCIÓN DE ACCIONES SIMPLIFICADA! --}}
-            {{-- ====================================================== --}}
-            {{-- Añadido 'justify-content-center' para centrar la tarjeta restante --}}
-            <div class="row g-4 mb-5 justify-content-center">
+        {{-- 3. Tarjeta de Acción (Centrada) --}}
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 col-lg-6">
+                <div class="card h-100 rounded-4 hover-lift border-0">
+                    <div class="card-body p-5 d-flex flex-column text-center align-items-center">
+                        <div class="icon-box bg-dark bg-opacity-10 text-dark mb-4" style="width: 70px; height: 70px;">
+                            <i class="bi bi-people-fill fs-2"></i>
+                        </div>
+                        
+                        <h4 class="fw-bold fs-4 text-dark mb-3">Gestión de Usuarios</h4>
+                        <p class="text-muted mb-4">
+                            Acceso a la creación, edición y eliminación de usuarios y roles del sistema.
+                        </p>
+                        
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-dark rounded-pill px-5 py-2 fw-medium stretched-link shadow-sm">
+                            Gestionar Usuarios <i class="bi bi-arrow-right-circle ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                {{-- Tarjeta: Gestión de Usuarios --}}
-                {{-- 'col-lg-6' para que ocupe un espacio razonable --}}
-                <div class="col-md-8 col-lg-6">
-                    {{-- 'h-100' para misma altura, 'd-flex' para alinear botón abajo --}}
-                    <div class="card shadow-sm rounded-3 h-100 d-flex flex-column">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-people-fill fs-2 text-primary me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Gestión de Usuarios</h4>
+        {{-- 4. Sección de Estadísticas --}}
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+                    <div class="card-header bg-white p-4 border-bottom-0 text-center">
+                        <h5 class="fw-bold mb-1">Estadísticas del Sistema</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row g-0 justify-content-center">
+                            
+                            {{-- Estadística: Total Usuarios --}}
+                            <div class="col-md-6">
+                                <div class="p-5 text-center bg-dark bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                    <i class="bi bi-hdd-stack text-dark mb-3" style="font-size: 3rem;"></i>
+                                    <h2 class="display-4 fw-bold text-dark mb-1">{{ $totalUsuarios ?? 0 }}</h2>
+                                    <p class="text-muted fs-6 fw-bold mb-0">Usuarios Registrados</p>
                                 </div>
                             </div>
-                            <p class="card-text text-muted">Acceso a la creación, edición y eliminación de usuarios del sistema.</p>
-                        </div>
-                        {{-- 'mt-auto' empuja el botón al fondo del 'flex-column' --}}
-                        <div class="card-footer bg-transparent border-0 p-4 pt-0">
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-primary mt-auto">
-                                Gestionar Usuarios <i class="bi bi-arrow-right-circle ms-1"></i>
-                            </a>
+
                         </div>
                     </div>
-                </div>
-
-                {{-- Tarjeta: Gestión de Roles (ELIMINADA) --}}
-
-                {{-- Tarjeta: Configuración del Sistema (ELIMINADA) --}}
-
-            </div>
-            {{-- ====================================================== --}}
-            {{-- FIN DE SECCIÓN DE ACCIONES --}}
-            {{-- ====================================================== --}}
-
-
-            {{-- ====================================================== --}}
-            {{-- ¡SECCIÓN DE ESTADÍSTICAS SIMPLIFICADA! --}}
-            {{-- ====================================================== --}}
-            <div class="card shadow-sm rounded-3">
-                <div class="card-header bg-body-tertiary p-3">
-                    <h4 class="fw-semibold fs-5 mb-0">Estadísticas Clave</h4>
-                </div>
-                <div class="card-body p-4">
-                    {{-- Añadido 'justify-content-center' para centrar la estadística restante --}}
-                    <div class="row g-4 justify-content-center">
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card bg-body-tertiary shadow-sm border-0 text-center p-3">
-                                {{-- ¡VALOR ACTUALIZADO! --}}
-                                <span class="fs-1 fw-bold text-primary">{{ $totalUsuarios ?? 0 }}</span>
-                                <p class="fs-6 text-muted mb-0">Usuarios Totales</p>
-                            </div>
-                        </div>
-                        
-                        {{-- Tarjeta: Casos Activos (ELIMINADA) --}}
-                        
-                        {{-- Tarjeta: Casos Pendientes (ELIMINADA) --}}
-                        
+                    <div class="card-footer bg-white border-top-0 py-3 text-center">
+                        <small class="text-muted">Información general de la base de datos.</small>
                     </div>
-                    <p class="small text-muted text-center mt-4 mb-0">Estadísticas generales del sistema.</p>
                 </div>
             </div>
-            {{-- ====================================================== --}}
-            {{-- FIN DE SECCIÓN DE ESTADÍSTICAS --}}
-            {{-- ====================================================== --}}
-
         </div>
+
     </div>
 </x-app-layout>

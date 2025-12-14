@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Rol; // <-- Importa el modelo Rol
+use App\Models\Rol; // <-- Importamos el modelo Rol
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -16,19 +16,11 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -37,33 +29,30 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // Buscamos el ID del rol "Estudiante" en la base de datos.
-        // Usamos firstOrFail() para detener la ejecución si el rol no existe (algo salió mal con el Seeder).
-        $rolEstudiante = Rol::where('nombre_rol', 'Estudiante')->firstOrFail();
+        // 1. Buscamos el rol Estudiante
+        // Si no existe, lanzamos un error claro en vez de un fallo genérico
+        $rolEstudiante = Rol::where('nombre_rol', 'Estudiante')->first();
 
+        if (!$rolEstudiante) {
+            // Esto solo pasa si no corriste el RoleSeeder
+            return back()->withErrors(['email' => 'Error del sistema: El rol "Estudiante" no existe en la base de datos. Contacte al administrador.']);
+        }
+
+        // 2. Creamos el usuario con el rol asignado
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'rol_id' => $rolEstudiante->id, // <-- Asignamos el ID encontrado
+            'rol_id' => $rolEstudiante->id, // <-- Asignación automática
         ]);
-        // --- FIN DE LA MODIFICACIÓN ---
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        // Redirige al dashboard correspondiente (usando la lógica que ya pusimos en AuthenticatedSessionController)
-        return redirect()->intended(route(match($user->rol->nombre_rol) {
-            'Administrador' => 'admin.dashboard',
-            'Asesoría Pedagógica' => 'asesoria.dashboard',
-            'Director de Carrera' => 'director.dashboard',
-            'Docente' => 'docente.dashboard',
-            'Estudiante' => 'estudiante.dashboard',
-            default => 'login',
-        }));
-        // return redirect(RouteServiceProvider::HOME); // Línea original de Breeze
+        // 3. Redirección Inteligente
+        // Enviamos al usuario a la raíz '/'. 
+        // Tu archivo web.php recibirá la petición, verá que es "Estudiante" y lo mandará a su dashboard.
+        return redirect('/');
     }
 }
-

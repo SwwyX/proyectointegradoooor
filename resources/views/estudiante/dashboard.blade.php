@@ -1,43 +1,114 @@
 <x-app-layout>
-    <div class="py-5">
-        <div class="container-fluid px-4">
+    <div class="container px-4 py-5">
 
-            {{-- Título --}}
-            <h2 class="fw-semibold fs-2 text-body-emphasis mb-4">
-                Dashboard: {{ Auth::user()->rol->nombre_rol }}
-            </h2>
-
-            {{-- Banner de Bienvenida --}}
-            <div class="p-4 p-md-5 mb-5 text-white rounded-3 shadow" style="background-color: #0dcaf0;"> {{-- Color Cyan/Estudiante --}}
-                <h3 class="fs-2 fw-bold">¡Hola, {{ Auth::user()->name }}!</h3>
-                <p class="mt-2 fs-5" style="opacity: 0.9;">Bienvenido/a a tu espacio para gestionar tus solicitudes de ajustes académicos.</p>
+        {{-- 1. Banner de Bienvenida (ORIGINAL MANTENIDO) --}}
+        <div class="p-5 mb-5 text-white rounded-4 shadow position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #6f0df0ff 0%, #0aa2c0 100%);">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-lg-8">
+                    <h3 class="fs-2 fw-bold mb-3">¡Hola, {{ Auth::user()->name }}!</h3>
+                    <p class="fs-5 text-white-50 mb-0" style="max-width: 650px;">
+                        Bienvenido/a a tu espacio para gestionar tus solicitudes de ajustes académicos.
+                    </p>
+                </div>
             </div>
+            {{-- Decoración --}}
+            <svg class="position-absolute bottom-0 end-0 text-white opacity-10" style="transform: rotateY(180deg); width: 300px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M42.7,-62.9C54.3,-53.4,61.8,-38.2,66.3,-22.7C70.8,-7.2,72.3,8.6,67.1,22.3C61.9,36,50,47.5,36.4,56.7C22.7,65.9,7.4,72.7,-7.7,72.1C-22.7,71.5,-37.4,63.5,-49.3,53C-61.2,42.5,-70.2,29.5,-74.6,15C-79,0.5,-78.8,-15.5,-72.4,-29.1C-66,-42.7,-53.4,-53.8,-39.7,-62C-26.1,-70.1,-13,-75.4,1.6,-77.6C16.3,-79.8,31.1,-72.4,42.7,-62.9Z" transform="translate(100 100)" />
+            </svg>
+        </div>
 
-            {{-- Widgets específicos para el Estudiante --}}
-            <div class="row g-4 justify-content-center">
-                {{-- Widget: Estado de Mis Casos --}}
-                <div class="col-md-8 col-lg-6">
-                    <div class="card shadow-sm rounded-3 h-100">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-folder-check fs-2 text-primary me-3"></i>
-                                <div>
-                                    <h4 class="fw-semibold fs-5 mb-0">Estado de Mis Solicitudes</h4>
-                                    <p class="card-text text-muted mt-1">Ver el estado actual de tus casos y subir nueva documentación.</p>
-                                </div>
+        @if(!$stats['tiene_perfil'])
+            {{-- Alerta de Sin Perfil --}}
+            <div class="alert alert-warning shadow-sm border-0 rounded-4 d-flex align-items-center p-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-1 me-4 opacity-50"></i>
+                <div>
+                    <h4 class="alert-heading fw-bold mb-1">Perfil no encontrado</h4>
+                    <p class="mb-0">No se encontró un perfil de estudiante asociado a tu cuenta. Por favor, contacta a la Encargada de Inclusión.</p>
+                </div>
+            </div>
+        @else
+            
+            {{-- 2. TARJETAS DE ACCIÓN PRINCIPALES (GRID DE 2 COLUMNAS) --}}
+            <div class="row g-4 mb-5">
+                
+                {{-- Tarjeta 1: Mis Solicitudes (ORIGINAL) --}}
+                <div class="col-md-6">
+                    <div class="card h-100 rounded-4 hover-lift border-0">
+                        <div class="card-body p-5 d-flex flex-column text-center align-items-center">
+                            <div class="icon-box bg-primary bg-opacity-10 text-primary mb-4" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 14px;">
+                                <i class="bi bi-folder2-open fs-2"></i>
                             </div>
-                            <a href="{{ route('estudiante.casos.index') }}" class="btn btn-primary mt-auto">
-                                Ver mis casos
-                                <i class="bi bi-arrow-right-circle ms-1"></i>
+                            <h4 class="fw-bold fs-4 text-dark mb-3">Mis Solicitudes</h4>
+                            <p class="text-muted mb-4">
+                                Revisa el estado de tus solicitudes y accede al detalle de tus ajustes académicos.
+                            </p>
+                            <a href="{{ route('estudiante.casos.index') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-medium stretched-link shadow-sm">
+                                Ver Mis Casos <i class="bi bi-arrow-right-circle ms-2"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
-                {{-- Widget: Subir Documentos (Eliminado, se unió con el de arriba) --}}
-                
+                {{-- Tarjeta 2: RESERVA DE HORAS (NUEVO) --}}
+                <div class="col-md-6">
+                    <div class="card h-100 rounded-4 hover-lift border-0" style="border-bottom: 4px solid #20c997 !important;">
+                        <div class="card-body p-5 d-flex flex-column text-center align-items-center">
+                            <div class="icon-box bg-teal-subtle text-teal mb-4" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background-color: #e6f2f2; color: #008080;">
+                                <i class="bi bi-calendar-check-fill fs-2"></i>
+                            </div>
+                            <h4 class="fw-bold fs-4 text-dark mb-3">Reserva de Horas</h4>
+                            <p class="text-muted mb-4">
+                                Agenda una cita presencial con la Encargada de Inclusión para entrevistas o dudas.
+                            </p>
+                            <a href="{{ route('estudiante.citas.index') }}" class="btn btn-outline-success rounded-pill px-5 py-2 fw-medium stretched-link shadow-sm text-dark border-2" style="border-color: #20c997;">
+                                Agendar Hora <i class="bi bi-clock ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-        </div>
+            {{-- 3. Estadísticas Rápidas (ORIGINAL MANTENIDO) --}}
+            <div class="row justify-content-center">
+                <div class="col-lg-12">
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+                        <div class="card-header bg-white p-4 border-bottom-0 text-center">
+                            <h5 class="fw-bold mb-1">Resumen de Actividad</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                {{-- Total Solicitudes --}}
+                                <div class="col-md-4 border-end border-light">
+                                    <div class="p-5 text-center bg-primary bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                        <h2 class="display-4 fw-bold text-primary mb-1">{{ $stats['total'] }}</h2>
+                                        <p class="text-muted fs-6 fw-bold mb-0">Total Solicitudes</p>
+                                    </div>
+                                </div>
+                                {{-- En Proceso --}}
+                                <div class="col-md-4 border-end border-light">
+                                    <div class="p-5 text-center bg-warning bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                        <h2 class="display-4 fw-bold text-warning-emphasis mb-1">{{ $stats['activos'] }}</h2>
+                                        <p class="text-muted fs-6 fw-bold mb-0">En Proceso</p>
+                                        <small class="text-muted mt-2">(Siendo evaluadas)</small>
+                                    </div>
+                                </div>
+                                {{-- Finalizadas --}}
+                                <div class="col-md-4">
+                                     <div class="p-5 text-center bg-success bg-opacity-10 h-100 d-flex flex-column justify-content-center">
+                                        <h2 class="display-4 fw-bold text-success mb-1">{{ $stats['finalizados'] }}</h2>
+                                        <p class="text-muted fs-6 fw-bold mb-0">Finalizadas</p>
+                                        <small class="text-muted mt-2">(Con resolución)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        @endif
+
     </div>
 </x-app-layout>

@@ -2,172 +2,248 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Caso;
-use App\Models\Documento;
-use Illuminate\Http\Request; // ¡Asegúrate de que 'Request' esté importado!
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 use App\Models\User;
-use App\Notifications\CasoCreadoNotification;
+use App\Models\Estudiante;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use App\Notifications\CasoCreadoNotification; 
 use Illuminate\Support\Facades\Notification;
 
 class CasoController extends Controller
 {
     /**
-     * Muestra la lista de casos.
+     * Muestra TODOS los casos del sistema (Listado Maestro).
      */
-    public function index(Request $request): View // <-- Añadir Request aquí
+    public function index(Request $request): View
     {
-        // --- ¡INICIO DE LA MODIFICACIÓN! ---
         $query = Caso::query();
 
-        // Aplicar filtros de búsqueda
-        $this->aplicarFiltros($query, $request);
-        
-        // Cargar los casos y paginar
-        $casos = $query->latest()->paginate(15); 
-        // --- FIN DE LA MODIFICACIÓN! ---
+        // Filtros (Buscador)
+        if ($request->filled('search_rut')) {
+            $query->where('rut_estudiante', 'like', '%' . $request->input('search_rut') . '%');
+        }
+        if ($request->filled('search_estado')) {
+            $query->where('estado', $request->input('search_estado'));
+        }
+
+        // Ordenamos por fecha descendente
+        $casos = $query->latest()->paginate(20);
 
         return view('asesoria.casos.index', compact('casos'));
     }
 
     /**
-     * Muestra el formulario para crear un nuevo caso.
+     * Formulario para crear un caso nuevo (Si Asesoría necesita ingresar uno manualmente).
      */
     public function create(): View
     {
         return view('asesoria.casos.create');
     }
-    
-    // --- ¡NUEVO MÉTODO AÑADIDO! ---
-    /**
-     * Método helper privado para aplicar los filtros de búsqueda comunes.
-     * (Copiado desde Director/CasoController)
-     */
-    private function aplicarFiltros($query, Request $request)
-    {
-        // Filtrar por RUT de estudiante
-        if ($request->filled('search_rut')) {
-            $query->where('rut_estudiante', 'like', '%' . $request->input('search_rut') . '%');
-        }
-
-        // Filtrar por fecha de inicio (Desde)
-        if ($request->filled('search_fecha_inicio')) {
-            $query->whereDate('created_at', '>=', $request->input('search_fecha_inicio'));
-        }
-
-        // Filtrar por fecha de fin (Hasta)
-        if ($request->filled('search_fecha_fin')) {
-            $query->whereDate('created_at', '<=', $request->input('search_fecha_fin'));
-        }
-    }
-    // --- FIN DEL NUEVO MÉTODO ---
 
     /**
-     * Guarda un nuevo caso en la base de datos.
+     * Guardar nuevo caso.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        // 1. Validación Completa
         $validatedData = $request->validate([
             'rut_estudiante' => ['required', 'string', 'max:12'], 
-            'nombre_estudiante' => 'required|string|max:255',
-            'correo_estudiante' => 'required|email|max:255',
-            'carrera' => 'required|string|max:255',
-            'ajustes_propuestos' => 'required|string',
-            'documentos' => 'nullable|array|max:5', 
-            'documentos.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', 
+            'nombre_estudiante' => 'required', 
+            'correo_estudiante' => 'required', 
+            'carrera' => 'required',
+            'via_ingreso' => 'required|string',
+            'tipo_discapacidad' => 'nullable|array',
+            'origen_discapacidad' => 'nullable|string',
+            'credencial_rnd' => 'nullable', 
+            'pension_invalidez' => 'nullable', 
+            'certificado_medico' => 'nullable', 
+            'tratamiento_farmacologico' => 'nullable|string',
+            'acompanamiento_especialista' => 'nullable|string',
+            'redes_apoyo' => 'nullable|string',
+            'familia' => 'nullable|array',
+            'enseñanza_media_modalidad' => 'nullable|string',
+            'recibio_apoyos_pie' => 'nullable',
+            'detalle_apoyos_pie' => 'nullable|string',
+            'repitio_curso' => 'nullable',
+            'motivo_repeticion' => 'nullable|string',
+            'estudio_previo_superior' => 'nullable',
+            'nombre_institucion_anterior' => 'nullable|string',
+            'tipo_institucion_anterior' => 'nullable|string',
+            'carrera_anterior' => 'nullable|string',
+            'motivo_no_termino' => 'nullable|string',
+            'trabaja' => 'nullable',
+            'empresa' => 'nullable|string',
+            'cargo' => 'nullable|string',
+            'caracteristicas_intereses' => 'nullable|string',
+            'requiere_apoyos' => 'nullable', 
+            'ajustes_propuestos' => 'nullable|array', 
+            'ajustes_propuestos.*' => 'nullable|string', 
+            'foto_perfil' => 'nullable|image|max:5120',
         ]);
 
-        $rutLimpio = strtoupper(str_replace(['.', '-'], '', $validatedData['rut_estudiante']));
+        // 2. Buscar/Gestionar Estudiante
+        $rutLimpio = $validatedData['rut_estudiante'];
+        $estudiante = Estudiante::where('rut', $rutLimpio)->first();
+
+        if (!$estudiante) {
+            return back()->withInput()->withErrors(['rut_estudiante' => 'Estudiante no encontrado.']);
+        }
+
+        // Actualizar foto si viene
+        if ($request->hasFile('foto_perfil')) {
+            if ($estudiante->foto_perfil && Storage::disk('public')->exists($estudiante->foto_perfil)) {
+                Storage::disk('public')->delete($estudiante->foto_perfil);
+            }
+            $estudiante->foto_perfil = $request->file('foto_perfil')->store('perfiles', 'public');
+            $estudiante->save();
+        }
+
+        // --- LIMPIEZA DE ARRAYS (IMPORTANTE PARA GRÁFICOS) ---
+        // Eliminamos valores nulos o vacíos para que el JSON quede limpio en la BD.
+        
+        $tipoDiscapacidadLimpio = $request->input('tipo_discapacidad') 
+            ? array_values(array_filter($request->input('tipo_discapacidad'), fn($value) => !empty($value))) 
+            : [];
+
+        $familiaLimpia = $request->input('familia') 
+            ? array_values(array_filter($request->input('familia'), fn($item) => !empty($item['nombre'] ?? ''))) 
+            : [];
+
+        $ajustesLimpio = $request->input('ajustes_propuestos') 
+            ? array_values(array_filter($request->input('ajustes_propuestos'), fn($value) => !empty($value))) 
+            : [];
+        // -----------------------------------------------------
+
+        // 3. Crear el Caso
+        $rutLimpioParaCaso = strtoupper(str_replace(['.', '-'], '', $rutLimpio));
 
         $caso = Caso::create([
-            'rut_estudiante' => $rutLimpio,
+            'estudiante_id' => $estudiante->id,
+            'rut_estudiante' => $rutLimpioParaCaso,
             'nombre_estudiante' => $validatedData['nombre_estudiante'],
             'correo_estudiante' => $validatedData['correo_estudiante'],
             'carrera' => $validatedData['carrera'],
-            'ajustes_propuestos' => $validatedData['ajustes_propuestos'],
-            'asesoria_id' => Auth::id(),
-            'estado' => 'Sin Revision',
+            'asesoria_id' => Auth::id(), 
+            'estado' => 'En Gestion CTP', 
+            'via_ingreso' => $request->input('via_ingreso'),
+            
+            // Arrays Limpios
+            'tipo_discapacidad' => $tipoDiscapacidadLimpio,
+            'informacion_familiar' => $familiaLimpia,
+            'ajustes_propuestos' => $ajustesLimpio,
+
+            'origen_discapacidad' => $request->input('origen_discapacidad'),
+            'credencial_rnd' => $request->has('credencial_rnd'),
+            'pension_invalidez' => $request->has('pension_invalidez'),
+            'certificado_medico' => $request->has('certificado_medico'),
+            'tratamiento_farmacologico' => $request->input('tratamiento_farmacologico'),
+            'acompanamiento_especialista' => $request->input('acompanamiento_especialista'),
+            'redes_apoyo' => $request->input('redes_apoyo'),
+            'enseñanza_media_modalidad' => $request->input('enseñanza_media_modalidad'),
+            'recibio_apoyos_pie' => $request->has('recibio_apoyos_pie'),
+            'detalle_apoyos_pie' => $request->input('detalle_apoyos_pie'),
+            'repitio_curso' => $request->has('repitio_curso'),
+            'motivo_repeticion' => $request->input('motivo_repeticion'),
+            'estudio_previo_superior' => $request->has('estudio_previo_superior'),
+            'nombre_institucion_anterior' => $request->input('nombre_institucion_anterior'),
+            'tipo_institucion_anterior' => $request->input('tipo_institucion_anterior'),
+            'carrera_anterior' => $request->input('carrera_anterior'),
+            'motivo_no_termino' => $request->input('motivo_no_termino'),
+            'trabaja' => $request->has('trabaja'),
+            'empresa' => $request->input('empresa'),
+            'cargo' => $request->input('cargo'),
+            'caracteristicas_intereses' => $request->input('caracteristicas_intereses'),
+            'requiere_apoyos' => $request->has('requiere_apoyos'),
         ]);
 
-        if ($request->hasFile('documentos')) {
-            foreach ($request->file('documentos') as $file) {
-                $path = $file->store("casos/{$caso->id}", 'public');
-                Documento::create([
-                    'caso_id' => $caso->id,
-                    'ruta' => $path,
-                    'nombre_original' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
-                ]);
-            }
-        }
-
-        // --- ¡INICIO DE LA MODIFICACIÓN! ---
+        // Notificar al CTP
         try {
-            // 1. Buscar a todos los usuarios que sean "Director de Carrera"
-            $directores = User::whereHas('rol', function ($query) {
-                $query->where('nombre_rol', 'Director de Carrera');
-            })->get();
+            $revisores = User::whereHas('rol', fn($q) => $q->where('nombre_rol', 'Coordinador Técnico Pedagógico'))->get();
+            Notification::send($revisores, new CasoCreadoNotification($caso));
+        } catch (\Exception $e) { \Log::error('Error notif: ' . $e->getMessage()); }
 
-            // 2. Enviarles la notificación
-            Notification::send($directores, new CasoCreadoNotification($caso));
-
-        } catch (\Exception $e) {
-            // Si el envío de correo falla (ej. Mailtrap está mal configurado),
-            // no rompemos la aplicación. Solo lo registramos.
-            \Log::error('Error al enviar notificación de nuevo caso: ' . $e->getMessage());
-        }
-        // --- FIN DE LA MODIFICACIÓN! ---
-
-        return redirect()->route('casos.index')->with('success', 'Caso registrado con éxito.');
+        return redirect()->route('casos.index')->with('success', 'Caso creado administrativamente y datos optimizados para análisis.');
     }
 
     /**
-     * Muestra los detalles de un caso específico.
+     * Ver detalles del caso (Lectura).
      */
     public function show(Caso $caso): View
     {
-        $caso->load('asesor', 'director', 'documentos');
+        $caso->load('ctp', 'director', 'estudiante');
         return view('asesoria.casos.show', compact('caso'));
     }
 
     /**
-     * Muestra el formulario para editar un caso.
+     * Formulario de Edición.
      */
     public function edit(Caso $caso): View
     {
+        // 1. BLOQUEO DE SEGURIDAD
+        if ($caso->estado === 'Finalizado') {
+            return redirect()->route('casos.index')
+                ->with('error', 'No se puede editar un caso que ya ha sido Finalizado por el Director.');
+        }
+
         return view('asesoria.casos.edit', compact('caso'));
     }
 
     /**
-     * Actualiza un caso existente.
+     * Actualizar caso.
      */
-    public function update(Request $request, Caso $caso)
+    public function update(Request $request, Caso $caso): RedirectResponse
     {
-        $validatedData = $request->validate([
-            'rut_estudiante' => ['required', 'string', 'max:12'],
-            'nombre_estudiante' => 'required|string|max:255',
-            'correo_estudiante' => 'required|email|max:255',
-            'carrera' => 'required|string|max:255',
-            'ajustes_propuestos' => 'required|string',
-        ]);
-        
-        $rutLimpio = strtoupper(str_replace(['.', '-'], '', $validatedData['rut_estudiante']));
-        $validatedData['rut_estudiante'] = $rutLimpio;
+        // 1. BLOQUEO DE SEGURIDAD
+        if ($caso->estado === 'Finalizado') {
+             abort(403, 'Acción no autorizada: El caso está Finalizado.');
+        }
 
+        // 2. Validar
+        $validatedData = $request->validate([
+            'ajustes_propuestos' => 'nullable|array',
+            'estado' => 'nullable|string', 
+            'foto_perfil' => 'nullable|image|max:5120',
+        ]);
+
+        // 3. Foto
+        if ($request->hasFile('foto_perfil')) {
+            $estudiante = $caso->estudiante;
+            if ($estudiante) {
+                if ($estudiante->foto_perfil && Storage::disk('public')->exists($estudiante->foto_perfil)) {
+                    Storage::disk('public')->delete($estudiante->foto_perfil);
+                }
+                $estudiante->foto_perfil = $request->file('foto_perfil')->store('perfiles', 'public');
+                $estudiante->save();
+            }
+        }
+
+        // --- LIMPIEZA DE ARRAY EN UPDATE TAMBIÉN ---
+        if (isset($validatedData['ajustes_propuestos'])) {
+            $validatedData['ajustes_propuestos'] = array_values(array_filter($validatedData['ajustes_propuestos'], fn($v) => !empty($v)));
+        }
+
+        // 4. Actualizar
         $caso->update($validatedData);
 
-        return redirect()->route('casos.index')->with('success', 'Caso actualizado con éxito.');
+        return redirect()->route('casos.index')->with('success', 'Caso actualizado por Supervisión.');
     }
 
     /**
-     * Elimina un caso.
+     * Eliminar caso.
      */
-    public function destroy(Caso $caso)
+    public function destroy(Caso $caso): RedirectResponse
     {
-        Storage::disk('public')->deleteDirectory('casos/' . $caso->id);
-        $caso->delete();
-        return redirect()->route('casos.index')->with('success', 'Caso eliminado con éxito.');
+        try {
+            Storage::disk('public')->deleteDirectory('casos/' . $caso->id);
+            $caso->delete();
+            return redirect()->route('casos.index')->with('success', 'Caso eliminado permanentemente.');
+        } catch (\Exception $e) {
+            return redirect()->route('casos.index')->with('error', 'Error al eliminar: ' . $e->getMessage());
+        }
     }
 }
