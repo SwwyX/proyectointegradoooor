@@ -178,13 +178,13 @@ Después de ejecutar los seeders, puedes acceder con:
 
 | Rol | Email | Password |
 |-----|-------|----------|
-| Administrador | admin@example.com | password |
-| Encargada Inclusión | encargada@example.com | password |
-| Coordinador CTP | ctp@example.com | password |
-| Director | director@example.com | password |
-| Docente | docente@example.com | password |
-| Estudiante | estudiante@example.com | password |
-| Asesoría | asesoria@example.com | password |
+| Administrador | admin1@gmail.com | 12345678 |
+| Asesoría Pedagógica | asesoria1@gmail.com | 12345678 |
+| Director de Carrera | director1@gmail.com | 12345678 |
+| Coordinador Técnico Pedagógico | ctp1@gmail.com | 12345678 |
+| Encargada Inclusión | encargada1@gmail.com | 12345678 |
+
+**Nota:** El seeder `EscenarioDePruebaSeeder` puede crear usuarios adicionales de Docentes y Estudiantes para pruebas.
 
 ## 📊 Estructura del Proyecto
 
