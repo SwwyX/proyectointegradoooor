@@ -17,9 +17,10 @@ Sistema web de gestión de ajustes razonables y adecuaciones curriculares para e
 
 ## 📚 Documentación
 
-- **[Guía Rápida](GUIA_RAPIDA.md)** - Inicio rápido en 5 minutos
-- **[Informe Técnico Completo](INFORME_TECNICO.md)** - Documentación detallada del sistema, arquitectura, seguridad y casos de uso
-- **[Guía de Despliegue](DEPLOYMENT.md)** - Instrucciones completas para despliegue en producción y AWS
+- **[📑 Índice de Documentación](DOCUMENTACION.md)** - Guía de navegación por toda la documentación
+- **[🚀 Guía Rápida](GUIA_RAPIDA.md)** - Inicio rápido en 5 minutos
+- **[📘 Informe Técnico Completo](INFORME_TECNICO.md)** - Documentación detallada del sistema, arquitectura, seguridad y casos de uso
+- **[⚙️ Guía de Despliegue](DEPLOYMENT.md)** - Instrucciones completas para despliegue en producción y AWS
 
 ## ✨ Características Principales
 
